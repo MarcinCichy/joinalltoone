@@ -14,11 +14,18 @@ class OpenFileDialog (QMainWindow):
         fname = QFileDialog.getOpenFileName(self, 'Open file', home_dir)
 
         print(fname)
+
         #if file selected, print text contents
         if fname[0]:
                 data = f.read()
                 print(data)
                 exit()
+       # #if file selected, print text contents
+        # if fname[0]:
+        #         data = f.read()
+        #         print(data)
+        #         exit()
+
 
 
 def main():
@@ -29,6 +36,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
