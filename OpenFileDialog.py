@@ -17,15 +17,9 @@ class OpenFileDialog (QMainWindow):
 
         #if file selected, print text contents
         if fname[0]:
-                data = f.read()
-                print(data)
-                exit()
-       # #if file selected, print text contents
-        # if fname[0]:
-        #         data = f.read()
-        #         print(data)
-        #         exit()
-
+            data = f.read()
+            print(data)
+            exit()
 
 
 def main():

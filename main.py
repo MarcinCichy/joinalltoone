@@ -10,16 +10,16 @@
 import sys
 import os
 import fnmatch
-from pathlib import Path
-from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
+import pathlib
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, QRadioButton, QGroupBox
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QIcon
 
 global file_type                # deklaracje zmiennej globalnej, aby była widoczna we wszystkich metodach
 file_type = 'py'
 
+path = pathlib.Path.cwd()
 
-
-from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -43,34 +43,41 @@ class Ui_MainWindow(object):
         self.groupBox_2.setGeometry(QtCore.QRect(130, 10, 611, 471))
         self.groupBox_2.setObjectName("groupBox_2")
         self.textEdit = QtWidgets.QTextEdit(self.groupBox_2)
-        self.textEdit.setGeometry(QtCore.QRect(10, 30, 591, 431))
+        self.textEdit.setGeometry(QtCore.QRect(10, 30, 571, 421))
         self.textEdit.setObjectName("textEdit")
         self.horizontalScrollBar = QtWidgets.QScrollBar(self.groupBox_2)
         self.horizontalScrollBar.setGeometry(QtCore.QRect(10, 440, 561, 16))
         self.horizontalScrollBar.setOrientation(QtCore.Qt.Horizontal)
         self.horizontalScrollBar.setObjectName("horizontalScrollBar")
         self.verticalScrollBar = QtWidgets.QScrollBar(self.groupBox_2)
-        self.verticalScrollBar.setGeometry(QtCore.QRect(580, 30, 16, 411))
+        self.verticalScrollBar.setGeometry(QtCore.QRect(570, 30, 17, 411))
+        self.verticalScrollBar.setMinimumSize(QtCore.QSize(16, 411))
         self.verticalScrollBar.setOrientation(QtCore.Qt.Vertical)
         self.verticalScrollBar.setObjectName("verticalScrollBar")
         self.groupBox_3 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_3.setGeometry(QtCore.QRect(750, 10, 281, 541))
+        self.groupBox_3.setGeometry(QtCore.QRect(750, 10, 281, 471))
         self.groupBox_3.setObjectName("groupBox_3")
         self.verticalScrollBar_2 = QtWidgets.QScrollBar(self.groupBox_3)
         self.verticalScrollBar_2.setGeometry(QtCore.QRect(310, 10, 16, 501))
         self.verticalScrollBar_2.setOrientation(QtCore.Qt.Vertical)
         self.verticalScrollBar_2.setObjectName("verticalScrollBar_2")
+        self.listWidget = QtWidgets.QListWidget(self.groupBox_3)
+        self.listWidget.setGeometry(QtCore.QRect(10, 30, 251, 431))
+        self.listWidget.setObjectName("listWidget")
         self.horizontalScrollBar_2 = QtWidgets.QScrollBar(self.groupBox_3)
-        self.horizontalScrollBar_2.setGeometry(QtCore.QRect(0, 520, 271, 20))
+        self.horizontalScrollBar_2.setGeometry(QtCore.QRect(10, 440, 231, 20))
         self.horizontalScrollBar_2.setOrientation(QtCore.Qt.Horizontal)
         self.horizontalScrollBar_2.setObjectName("horizontalScrollBar_2")
         self.verticalScrollBar_3 = QtWidgets.QScrollBar(self.groupBox_3)
-        self.verticalScrollBar_3.setGeometry(QtCore.QRect(260, 10, 16, 501))
+        self.verticalScrollBar_3.setGeometry(QtCore.QRect(240, 30, 20, 411))
         self.verticalScrollBar_3.setOrientation(QtCore.Qt.Vertical)
         self.verticalScrollBar_3.setObjectName("verticalScrollBar_3")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(10, 20, 101, 23))
         self.pushButton.setObjectName("pushButton")
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(750, 500, 91, 21))
+        self.pushButton_2.setObjectName("pushButton_2")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1042, 20))
@@ -83,11 +90,10 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-
-        #         #dot. sygnałów przycisku do otwierania okna dialogowego  z wyborem pliku
+        #  dot. sygnałów przycisku do otwierania okna dialogowego  z wyborem pliku
         self.pushButton.clicked.connect(self.open_file_dialog)
+        self.listWidget.itemClicked.connect(self.on_item_clicked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -98,27 +104,40 @@ class Ui_MainWindow(object):
         self.groupBox_2.setTitle(_translate("MainWindow", "Joined All Files"))
         self.groupBox_3.setTitle(_translate("MainWindow", "Files to Select"))
         self.pushButton.setText(_translate("MainWindow", "Select Folder"))
+        self.pushButton_2.setText(_translate("MainWindow", "JOIN"))
 
     def open_file_dialog(self):
-        self.textEdit.clear()  # przy otwarciu okna dialogowego (wyboruy folderu), czyść zawartość okna textEdit
-        folderpath = QtWidgets.QFileDialog.getExistingDirectory(None,
-                                                                'Wybierz Folder')  # czemu tutaj działa None , a nie działa self
+        self.textEdit.clear()
+        self.listWidget.clear()
+        folderpath = QtWidgets.QFileDialog.getExistingDirectory(None, 'Wybierz Folder')
 
-        dlugosc_folder_path_name = min(len(folderpath), 60)  # (max 65 znaków)
-        self.textEdit.append("*" * (dlugosc_folder_path_name + 5))
-        self.textEdit.append(folderpath.replace('/',
-                                                '\\'))  # wyświetl ścieżkę dostępu i jednocześnie zamienia w niej znak '/' na '\' zgodnie z systemem Winodws
-        self.textEdit.append("*" * (dlugosc_folder_path_name + 5))
+        for file_name in os.listdir(folderpath):
+            if fnmatch.fnmatch(file_name, '*.' + file_type):
+                item = QtWidgets.QListWidgetItem(file_name)
+                # if file_name.endswith(".py"):
+                #     item.setIcon(QIcon("green_checkmark.png"))
+                # else:
+                #     item.setIcon(QIcon("red_cross.png"))
+                item.setIcon(QIcon("blank_checkmark.png"))
+                self.listWidget.addItem(item)
 
-        # print (file_type)
-        for file_name in os.listdir(folderpath):  # pętla w celu odczytania wszystkich plików w folderze
-            if fnmatch.fnmatch(file_name,
-                               '*.' + file_type):  # ale warunek powoduje, że będą to tylko pliki o wskazanym rozszerzeniu -> file_type
-                self.textEdit.append(file_name)  # dodaj do pola textEdit kolejno odczytane z folderu nazwy pików
-                self.textEdit.append("-" * 60)  # oraz linie rozdzielające pomiędzy nazwami
+    def on_item_clicked(self, item):
+        self.change_icon(item)
+        # item.setIcon(QIcon("green_checkmark.png"))
 
-        # self.lbl_Name_Of_Folder_Value.setVisible(True)  # pokaż etykietę, która wyświetla nazwę wybranego folderu
-        # self.lbl_Name_Of_Folder_Value.setText(os.path.basename(folderpath))  #
+    def change_icon(self, item):
+        icons = path.glob("*.png")
+        list_of_icons = list(icons)
+        print(list_of_icons[1])
+       #c  item.setIcon(QIcon(list_of_icons[1]))
+
+        # for icon in icons:
+        #     icon_list.append(picture)
+        # station = random.choice(radios_list)
+        # # print(station) # to check myself
+        # global image
+        # image = PhotoImage(file=station)
+        # self.btn_random['image'] = image
 
 
 if __name__ == "__main__":
