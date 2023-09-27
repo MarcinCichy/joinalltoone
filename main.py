@@ -22,6 +22,11 @@ path = pathlib.Path.cwd()
 
 
 class Ui_MainWindow(object):
+    def __init__(self):
+        self.icons_list = None
+        self.icon_index = 0
+        self.icons = None
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1042, 593)
@@ -114,30 +119,20 @@ class Ui_MainWindow(object):
         for file_name in os.listdir(folderpath):
             if fnmatch.fnmatch(file_name, '*.' + file_type):
                 item = QtWidgets.QListWidgetItem(file_name)
-                # if file_name.endswith(".py"):
-                #     item.setIcon(QIcon("green_checkmark.png"))
-                # else:
-                #     item.setIcon(QIcon("red_cross.png"))
                 item.setIcon(QIcon("blank_checkmark.png"))
                 self.listWidget.addItem(item)
 
     def on_item_clicked(self, item):
         self.change_icon(item)
-        # item.setIcon(QIcon("green_checkmark.png"))
 
     def change_icon(self, item):
-        icons = path.glob("*.png")
-        list_of_icons = list(icons)
-        print(list_of_icons[1])
-       #c  item.setIcon(QIcon(list_of_icons[1]))
-
-        # for icon in icons:
-        #     icon_list.append(picture)
-        # station = random.choice(radios_list)
-        # # print(station) # to check myself
-        # global image
-        # image = PhotoImage(file=station)
-        # self.btn_random['image'] = image
+        self.icons = path.glob("*.png")
+        self.icons_list = list(path.glob("*.png"))
+        self.icon_index = (self.icon_index + 1) % len(self.icons_list)
+        print(self.icon_index, end="")
+        icon_path = str(self.icons_list[self.icon_index])
+        print(f" {icon_path}")
+        item.setIcon(QIcon(icon_path))
 
 
 if __name__ == "__main__":
