@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import (QMainWindow, QTextEdit, QAction, QFileDialog, QApplication)
-from PyQt5.QtGui import QIcon
 import sys
 from pathlib import Path
 
@@ -11,16 +10,7 @@ class OpenFileDialog (QMainWindow):
 
         # open dialog
         home_dir = str(Path.home())
-        fname = QFileDialog.getOpenFileName(self, 'Open file', home_dir)
-
-        print(fname)
-
-        #if file selected, print text contents
-        if fname[0]:
-            data = f.read()
-            print(data)
-            exit()
-
+        QFileDialog.getOpenFileName(self, 'Open file', home_dir)
 
 def main():
     app = QApplication(sys.argv)

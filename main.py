@@ -130,18 +130,15 @@ class Ui_MainWindow(object):
         current_status = self.status_item.get(item.text(), False)
         new_status = not current_status
         self.status_item[item.text()] = new_status
-        print(f"At click {self.status_item}")
-        self.change_icon(item)
+        print(self.status_item)
+        self.change_icon(new_status, item)
 
-
-    def change_icon(self, item):
-        self.icons = path.glob("*.png")
-        self.icons_list = list(path.glob("*.png"))
-        self.icon_index = (self.icon_index + 1) % len(self.icons_list)
-        icon_path = str(self.icons_list[self.icon_index])
-        item.setIcon(QIcon(icon_path))
-
-
+    @staticmethod
+    def change_icon(new_status, item):
+        if not new_status:
+            item.setIcon(QIcon("red_checkmark.png"))
+        else:
+            item.setIcon(QIcon("green_checkmark.png"))
 
 
 if __name__ == "__main__":
