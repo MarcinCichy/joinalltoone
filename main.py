@@ -26,6 +26,8 @@ class Ui_MainWindow(object):
         self.icons_list = None
         self.icon_index = 0
         self.icons = None
+        self.status_item = {}
+
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -112,6 +114,7 @@ class Ui_MainWindow(object):
         self.pushButton_2.setText(_translate("MainWindow", "JOIN"))
 
     def open_file_dialog(self):
+        self.status_item = {}
         self.textEdit.clear()
         self.listWidget.clear()
         folderpath = QtWidgets.QFileDialog.getExistingDirectory(None, 'Wybierz Folder')
@@ -119,24 +122,29 @@ class Ui_MainWindow(object):
         for file_name in os.listdir(folderpath):
             if fnmatch.fnmatch(file_name, '*.' + file_type):
                 item = QtWidgets.QListWidgetItem(file_name)
-                item.setIcon(QIcon("blank_checkmark.png"))
+                item.setIcon(QIcon("red_checkmark.png"))
+                self.status_item[item.text()] = False
                 self.listWidget.addItem(item)
 
     def on_item_clicked(self, item):
+        current_status = self.status_item.get(item.text(), False)
+        new_status = not current_status
+        self.status_item[item.text()] = new_status
+        print(f"At click {self.status_item}")
         self.change_icon(item)
+
 
     def change_icon(self, item):
         self.icons = path.glob("*.png")
         self.icons_list = list(path.glob("*.png"))
         self.icon_index = (self.icon_index + 1) % len(self.icons_list)
-        print(self.icon_index, end="")
         icon_path = str(self.icons_list[self.icon_index])
-        print(f" {icon_path}")
         item.setIcon(QIcon(icon_path))
 
 
+
+
 if __name__ == "__main__":
-    import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
