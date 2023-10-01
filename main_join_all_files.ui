@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
+ <author>Marcin Cichy</author>
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
   <property name="geometry">
@@ -26,7 +27,7 @@
     <property name="title">
      <string>File Extension</string>
     </property>
-    <widget class="QRadioButton" name="radioButton">
+    <widget class="QRadioButton" name="radioButtonPyFile">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -39,7 +40,7 @@
       <string>PY</string>
      </property>
     </widget>
-    <widget class="QRadioButton" name="radioButton_2">
+    <widget class="QRadioButton" name="radioButtonOtherFile">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -85,38 +86,6 @@
       </rect>
      </property>
     </widget>
-    <widget class="QScrollBar" name="horizontalScrollBar">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>440</y>
-       <width>561</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QScrollBar" name="verticalScrollBar">
-     <property name="geometry">
-      <rect>
-       <x>570</x>
-       <y>30</y>
-       <width>17</width>
-       <height>411</height>
-      </rect>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>16</width>
-       <height>411</height>
-      </size>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
@@ -130,19 +99,6 @@
     <property name="title">
      <string>Files to Select</string>
     </property>
-    <widget class="QScrollBar" name="verticalScrollBar_2">
-     <property name="geometry">
-      <rect>
-       <x>310</x>
-       <y>10</y>
-       <width>16</width>
-       <height>501</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
     <widget class="QListWidget" name="listWidget">
      <property name="geometry">
       <rect>
@@ -151,32 +107,6 @@
        <width>251</width>
        <height>431</height>
       </rect>
-     </property>
-    </widget>
-    <widget class="QScrollBar" name="horizontalScrollBar_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>440</y>
-       <width>231</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QScrollBar" name="verticalScrollBar_3">
-     <property name="geometry">
-      <rect>
-       <x>240</x>
-       <y>30</y>
-       <width>20</width>
-       <height>411</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
      </property>
     </widget>
    </widget>

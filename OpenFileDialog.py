@@ -12,6 +12,8 @@ class OpenFileDialog (QMainWindow):
         home_dir = str(Path.home())
         QFileDialog.getOpenFileName(self, 'Open file', home_dir)
 
+
+
 def main():
     app = QApplication(sys.argv)
     ex = OpenFileDialog()

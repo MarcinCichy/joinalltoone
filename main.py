@@ -27,7 +27,7 @@ class Ui_MainWindow(object):
         self.icon_index = 0
         self.icons = None
         self.status_item = {}
-
+        self.all_files_content = {}
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -37,12 +37,12 @@ class Ui_MainWindow(object):
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QtCore.QRect(10, 70, 111, 81))
         self.groupBox.setObjectName("groupBox")
-        self.radioButton = QtWidgets.QRadioButton(self.groupBox)
-        self.radioButton.setGeometry(QtCore.QRect(10, 20, 82, 18))
-        self.radioButton.setObjectName("radioButton")
-        self.radioButton_2 = QtWidgets.QRadioButton(self.groupBox)
-        self.radioButton_2.setGeometry(QtCore.QRect(10, 40, 82, 18))
-        self.radioButton_2.setObjectName("radioButton_2")
+        self.radioButtonPyFile = QtWidgets.QRadioButton(self.groupBox)
+        self.radioButtonPyFile.setGeometry(QtCore.QRect(10, 20, 82, 18))
+        self.radioButtonPyFile.setObjectName("radioButtonPyFile")
+        self.radioButtonOtherFile = QtWidgets.QRadioButton(self.groupBox)
+        self.radioButtonOtherFile.setGeometry(QtCore.QRect(10, 40, 82, 18))
+        self.radioButtonOtherFile.setObjectName("radioButtonOtherFile")
         self.lineEdit = QtWidgets.QLineEdit(self.groupBox)
         self.lineEdit.setGeometry(QtCore.QRect(60, 40, 41, 20))
         self.lineEdit.setObjectName("lineEdit")
@@ -52,33 +52,12 @@ class Ui_MainWindow(object):
         self.textEdit = QtWidgets.QTextEdit(self.groupBox_2)
         self.textEdit.setGeometry(QtCore.QRect(10, 30, 571, 421))
         self.textEdit.setObjectName("textEdit")
-        self.horizontalScrollBar = QtWidgets.QScrollBar(self.groupBox_2)
-        self.horizontalScrollBar.setGeometry(QtCore.QRect(10, 440, 561, 16))
-        self.horizontalScrollBar.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalScrollBar.setObjectName("horizontalScrollBar")
-        self.verticalScrollBar = QtWidgets.QScrollBar(self.groupBox_2)
-        self.verticalScrollBar.setGeometry(QtCore.QRect(570, 30, 17, 411))
-        self.verticalScrollBar.setMinimumSize(QtCore.QSize(16, 411))
-        self.verticalScrollBar.setOrientation(QtCore.Qt.Vertical)
-        self.verticalScrollBar.setObjectName("verticalScrollBar")
         self.groupBox_3 = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox_3.setGeometry(QtCore.QRect(750, 10, 281, 471))
         self.groupBox_3.setObjectName("groupBox_3")
-        self.verticalScrollBar_2 = QtWidgets.QScrollBar(self.groupBox_3)
-        self.verticalScrollBar_2.setGeometry(QtCore.QRect(310, 10, 16, 501))
-        self.verticalScrollBar_2.setOrientation(QtCore.Qt.Vertical)
-        self.verticalScrollBar_2.setObjectName("verticalScrollBar_2")
         self.listWidget = QtWidgets.QListWidget(self.groupBox_3)
         self.listWidget.setGeometry(QtCore.QRect(10, 30, 251, 431))
         self.listWidget.setObjectName("listWidget")
-        self.horizontalScrollBar_2 = QtWidgets.QScrollBar(self.groupBox_3)
-        self.horizontalScrollBar_2.setGeometry(QtCore.QRect(10, 440, 231, 20))
-        self.horizontalScrollBar_2.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalScrollBar_2.setObjectName("horizontalScrollBar_2")
-        self.verticalScrollBar_3 = QtWidgets.QScrollBar(self.groupBox_3)
-        self.verticalScrollBar_3.setGeometry(QtCore.QRect(240, 30, 20, 411))
-        self.verticalScrollBar_3.setOrientation(QtCore.Qt.Vertical)
-        self.verticalScrollBar_3.setObjectName("verticalScrollBar_3")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(10, 20, 101, 23))
         self.pushButton.setObjectName("pushButton")
@@ -99,6 +78,7 @@ class Ui_MainWindow(object):
 
         #  dot. sygnałów przycisku do otwierania okna dialogowego  z wyborem pliku
         self.pushButton.clicked.connect(self.open_file_dialog)
+        #self.pushButton_2.clicked.connect(self.show_file_content)
         self.listWidget.itemClicked.connect(self.on_item_clicked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -106,8 +86,8 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.groupBox.setTitle(_translate("MainWindow", "File Extension"))
-        self.radioButton.setText(_translate("MainWindow", "PY"))
-        self.radioButton_2.setText(_translate("MainWindow", "Other"))
+        self.radioButtonPyFile.setText(_translate("MainWindow", "PY"))
+        self.radioButtonOtherFile.setText(_translate("MainWindow", "Other"))
         self.groupBox_2.setTitle(_translate("MainWindow", "Joined All Files"))
         self.groupBox_3.setTitle(_translate("MainWindow", "Files to Select"))
         self.pushButton.setText(_translate("MainWindow", "Select Folder"))
@@ -130,16 +110,39 @@ class Ui_MainWindow(object):
         current_status = self.status_item.get(item.text(), False)
         new_status = not current_status
         self.status_item[item.text()] = new_status
-        print(self.status_item)
         self.change_icon(new_status, item)
+        self.file_content(new_status, item)
+        self.show_file_content(new_status, item)
 
-    @staticmethod
-    def change_icon(new_status, item):
+    # @staticmethod
+    def change_icon(self, new_status, item):
         if not new_status:
             item.setIcon(QIcon("red_checkmark.png"))
         else:
             item.setIcon(QIcon("green_checkmark.png"))
 
+    def join_files(self):
+        pass
+
+    def file_content(self, new_status, item):
+        if new_status:
+            with open(item.text(), 'r', encoding='utf-8') as file:
+                file_lines = file.readlines()
+                self.all_files_content[item.text()] = file_lines
+                # print(self.all_files_content)
+
+        elif not new_status:
+            del self.all_files_content[item.text()]
+            # print(self.all_files_content)
+
+    def show_file_content(self, new_status, item):
+        if new_status:
+            self.textEdit.insertPlainText(f"FILE: {item.text()} \n\n")
+            file_content_list = self.all_files_content.get(item.text(), [])
+            content_str = ''.join(file_content_list)
+            self.textEdit.insertPlainText(content_str + '\n')
+        # elif not new_status:
+        #     self.textEdit.clear()
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
