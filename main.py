@@ -13,7 +13,7 @@ import fnmatch
 import pathlib
 from PyQt5.QtWidgets import QDialog, QApplication, QFileDialog, QRadioButton, QGroupBox
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QTextCursor
 
 global file_type                # deklaracje zmiennej globalnej, aby była widoczna we wszystkich metodach
 file_type = 'py'
@@ -112,7 +112,7 @@ class Ui_MainWindow(object):
         self.status_item[item.text()] = new_status
         self.change_icon(new_status, item)
         self.file_content(new_status, item)
-        self.show_file_content(new_status, item)
+        self.show_file_content(item)
 
     # @staticmethod
     def change_icon(self, new_status, item):
@@ -129,20 +129,54 @@ class Ui_MainWindow(object):
             with open(item.text(), 'r', encoding='utf-8') as file:
                 file_lines = file.readlines()
                 self.all_files_content[item.text()] = file_lines
-                # print(self.all_files_content)
+                print(self.all_files_content)
 
         elif not new_status:
+            self.hide_file_content(item)
             del self.all_files_content[item.text()]
-            # print(self.all_files_content)
+            print(self.all_files_content)
 
-    def show_file_content(self, new_status, item):
-        if new_status:
-            self.textEdit.insertPlainText(f"FILE: {item.text()} \n\n")
-            file_content_list = self.all_files_content.get(item.text(), [])
-            content_str = ''.join(file_content_list)
-            self.textEdit.insertPlainText(content_str + '\n')
-        # elif not new_status:
-        #     self.textEdit.clear()
+    def show_file_content(self, item):
+        self.textEdit.insertPlainText(f"FILE: {item.text()} \n\n")
+        file_content_list = self.all_files_content.get(item.text(), [])
+        content_str = ''.join(file_content_list)
+        self.textEdit.insertPlainText(content_str + '\n')
+
+    def hide_file_content(self, item):
+        cursor = self.textEdit.textCursor()
+        cursor.setPosition(0)
+        self.textEdit.setTextCursor(cursor)
+        # self.textEdit.setPlainText(header)
+        header = f"FILE: {item.text()}"
+        # header = "FILE"
+        print(header)
+        text = self.textEdit.toPlainText()
+        # print(f'HEADER: {header}')
+        found = self.textEdit.find(header)
+        if found:
+            cursor.removeSelectedText()
+        print(found)
+
+
+
+        # file_content_list = self.all_files_content.get(item.text())
+        # content_str_to_hide = ''.join(file_content_list)
+       #  print(content_str_to_hide)
+       #
+       #  cursor = self.textEdit.textCursor()
+       #  cursor.setPosition(0)
+       #  self.textEdit.setTextCursor(cursor)
+
+        # found_text = self.textEdit.find(content_str_to_hide)
+        # print(f"FILE CONTENT LIST: {file_content_list}")
+        # print(f"FILE CONTENT TO HIDE: {content_str_to_hide}")
+        # print(f"FOUND TEXT: {found_text}")
+       #  if found_text == file_content_list:
+       #      print("I found the text")
+       #  #     cursor = self.textEdit.textCursor()
+       #  #     cursor.removeSelectedText()
+       #  #     self.textEdit.textCursor()
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
