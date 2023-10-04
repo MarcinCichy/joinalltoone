@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import (QMainWindow, QTextEdit, QAction, QFileDialog, QApplication)
 import sys
 from pathlib import Path
+from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QApplication)
 
 
 class OpenFileDialog (QMainWindow):
@@ -8,10 +8,11 @@ class OpenFileDialog (QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # open dialog
+    def get_file_path(self):
         home_dir = str(Path.home())
-        QFileDialog.getOpenFileName(self, 'Open file', home_dir)
-
+        filter = "Python files (*.py);;All Files (*)"
+        file_names, _ = QFileDialog.getOpenFileNames(self, 'Open file', home_dir, filter)
+        return file_names
 
 
 def main():
