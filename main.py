@@ -20,7 +20,7 @@ from OpenFileDialog import OpenFileDialog
 global file_type                # deklaracje zmiennej globalnej, aby była widoczna we wszystkich metodach
 file_type = 'py'
 
-# path = pathlib.Path.cwd()
+path = pathlib.Path.cwd()
 
 
 class Ui_MainWindow(object):
@@ -34,6 +34,11 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1042, 593)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
+        MainWindow.setSizePolicy(sizePolicy)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
@@ -64,23 +69,25 @@ class Ui_MainWindow(object):
         self.pushButton.setGeometry(QtCore.QRect(10, 20, 101, 23))
         self.pushButton.setObjectName("pushButton")
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(750, 500, 91, 21))
+        self.pushButton_2.setGeometry(QtCore.QRect(140, 500, 91, 21))
         self.pushButton_2.setObjectName("pushButton_2")
+        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_3.setGeometry(QtCore.QRect(760, 500, 75, 23))
+        self.pushButton_3.setObjectName("pushButton_3")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1042, 20))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
-        self.statusBar = QtWidgets.QStatusBar(MainWindow)
-        self.statusBar.setObjectName("statusBar")
-        MainWindow.setStatusBar(self.statusBar)
+
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        #  dot. sygnałów przycisku do otwierania okna dialogowego  z wyborem pliku
+        #  signals, sockets and connections
         self.pushButton.clicked.connect(self.open_file_dialog)
-        # self.pushButton_2.clicked.connect(self.show_file_content)
+        # self.pushButton_2.clicked.connect(self.join_files)
+        self.pushButton_3.clicked.connect(self.clear_list_of_files)
         self.listWidget.itemClicked.connect(self.on_item_clicked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -90,108 +97,68 @@ class Ui_MainWindow(object):
         self.groupBox.setTitle(_translate("MainWindow", "File Extension"))
         self.radioButtonPyFile.setText(_translate("MainWindow", "PY"))
         self.radioButtonOtherFile.setText(_translate("MainWindow", "Other"))
-        self.groupBox_2.setTitle(_translate("MainWindow", "Joined All Files"))
-        self.groupBox_3.setTitle(_translate("MainWindow", "Files to Select"))
-        self.pushButton.setText(_translate("MainWindow", "Select Files"))
+        self.groupBox_2.setTitle(_translate("MainWindow", "All Files Combined"))
+        self.groupBox_3.setTitle(_translate("MainWindow", "c"))
+        self.pushButton.setText(_translate("MainWindow", "SELECT FILES"))
         self.pushButton_2.setText(_translate("MainWindow", "JOIN"))
+        self.pushButton_3.setText(_translate("MainWindow", "CLEAR"))
 
     def open_file_dialog(self):
-        self.status_item = {}
         self.textEdit.clear()
-        # self.listWidget.clear()
         dialog = OpenFileDialog()
-        filepath = dialog.get_file_path()
+        file_paths = dialog.get_file_path()
 
-        for file_path in filepath:
+        for file_path in file_paths:
             file_name = Path(file_path).name
-            self.all_files_content[file_name] = []
+            self.all_files_content[file_name] = {'path': file_path, 'content': []}
 
             if fnmatch.fnmatch(file_name, '*.' + file_type):
                 item = QtWidgets.QListWidgetItem(file_name)
                 item.setIcon(QIcon("red_checkmark.png"))
                 self.status_item[item.text()] = False
                 self.listWidget.addItem(item)
-        print(self.all_files_content)
 
     def on_item_clicked(self, item):
         current_status = self.status_item.get(item.text(), False)
         new_status = not current_status
         self.status_item[item.text()] = new_status
-        self.change_icon(new_status, item)
+        self.change_icon(item)
 
         if new_status:
             self.file_content(item)
-            self.show_file_content(new_status, item)
+            self.show_file_content()
         elif not new_status:
-            self.all_files_content[item.text()] = []
-            self.hide_file_content(item)
-            self.show_file_content(new_status, item)
-        print(self.all_files_content)
+            self.all_files_content[item.text()]['content'] = []
+            self.show_file_content()
 
-    def change_icon(self, new_status, item):
-        if not new_status:
+    def change_icon(self, item):
+        temp1_status = self.status_item.get(item.text(), False)
+        if not temp1_status:
             item.setIcon(QIcon("red_checkmark.png"))
         else:
             item.setIcon(QIcon("green_checkmark.png"))
 
     def file_content(self, item):
-        with open(item.text(), 'r', encoding='utf-8') as file:
+        file_to_read = self.all_files_content.get(item.text())
+        with open(file_to_read['path'], 'r', encoding='utf-8') as file:
             file_lines = file.readlines()
-            self.all_files_content[item.text()] = file_lines
+            file_to_read['content'] = file_lines
 
-    def show_file_content(self, new_status, item):
-        if new_status:
-            self.textEdit.insertPlainText(f"FILE: {item.text()} \n\n")
-        file_content_list = self.all_files_content.get(item.text(), [])
-        content_str = ''.join(file_content_list)
-        self.textEdit.insertPlainText(content_str + '\n')
-
-    def hide_file_content(self, item):
-        cursor = self.textEdit.textCursor()
-        cursor.setPosition(0)
-        self.textEdit.setTextCursor(cursor)
-        header = f"FILE: {item.text()}"
-        print(f'HEADER: {header}')
-        found_header = self.textEdit.find(header)
-        print(f"HEADER_STATUS: {found_header}")
-        if found_header:
-            cursor = self.textEdit.textCursor()
-            cursor.removeSelectedText()
-            self.textEdit.clear()
-
-
-        # file_content_list = self.all_files_content.get(item.text())
-        # content_str_to_hide = ''.join(file_content_list)
-        # print(file_content_list)
-        # print(content_str_to_hide)
-        # #
-        # cursor = self.textEdit.textCursor()
-        # cursor.setPosition(0)
-        # self.textEdit.setTextCursor(cursor)
-        # found_content = self.textEdit.find(content_str_to_hide)
-        # print(f'CONTENT: {content_str_to_hide}')
-        # print(f"CONTENT STATUS: {found_content}")
-
-        # file_content_list = self.all_files_content.get(item.text())
-        # content_str_to_hide = ''.join(file_content_list)
-       #  print(content_str_to_hide)
-       #
-       #  cursor = self.textEdit.textCursor()
-       #  cursor.setPosition(0)
-       #  self.textEdit.setTextCursor(cursor)
-
-        # found_text = self.textEdit.find(content_str_to_hide)
-        # print(f"FILE CONTENT LIST: {file_content_list}")
-        # print(f"FILE CONTENT TO HIDE: {content_str_to_hide}")
-        # print(f"FOUND TEXT: {found_text}")
-       #  if found_text == file_content_list:
-       #      print("I found the text")
-       #  #     cursor = self.textEdit.textCursor()
-       #  #     cursor.removeSelectedText()
-       #  #     self.textEdit.textCursor()
+    def show_file_content(self):
+        self.textEdit.clear()
+        for file_name, file_content in self.all_files_content.items():
+            if file_content['content']:
+                self.textEdit.insertPlainText(f"FILE: {file_name} \n\n")
+                content_str = ''.join(file_content['content'])
+                self.textEdit.insertPlainText(content_str + '\n\n')
 
     def join_files(self):
         pass
+
+    def clear_list_of_files(self):
+        self.listWidget.clear()
+        self.all_files_content = {}
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
