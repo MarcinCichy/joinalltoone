@@ -8,9 +8,9 @@ class OpenFileDialog (QMainWindow):
     def __init__(self):
         super().__init__()
 
-    def get_file_path(self):
+    def get_file_path(self, file_type='*'):
         home_dir = str(Path.home())
-        filter = "Python files (*.py);;All Files (*)"
+        filter = f"{file_type.upper()} files (*.{file_type});;All Files (*)"
         file_names, _ = QFileDialog.getOpenFileNames(self, 'Open file', home_dir, filter)
         return file_names
 
