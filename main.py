@@ -127,12 +127,8 @@ class Ui_MainWindow(object):
         for file_path in file_paths:
             file_name = Path(file_path).name
 
-            if Path(file_name).suffix == ".joined":
-                print(file_name)
-                with open(file_name, 'r', encoding='utf-8') as file:
-                    print(json.load(file))
+            if Path(file_name).suffix != ".joined":
 
-            else:
                 self.all_files_content[file_name] = {'path': file_path, 'content': []}
 
                 if fnmatch.fnmatch(file_name, '*.' + self.file_type):
@@ -140,6 +136,9 @@ class Ui_MainWindow(object):
                     item.setIcon(QIcon("red_checkmark.png"))
                     self.status_item[item.text()] = False
                     self.listWidget.addItem(item)
+            else:
+                self.all_files_content = self.read_files_layout(file_name)
+                print(f"z odczytu: {self.all_files_content}")
 
     def on_item_clicked(self, item):
         current_status = self.status_item.get(item.text(), False)
@@ -188,6 +187,23 @@ class Ui_MainWindow(object):
         self.listWidget.clear()
         self.textEdit.clear()
         self.all_files_content = {}
+
+    def read_files_layout(self, file_name):
+        with open(file_name, 'r', encoding='utf-8') as file:
+            files_layout = json.load(file)
+
+        for key in files_layout.keys():
+            print(key)
+            item = QtWidgets.QListWidgetItem(key)
+            item.setIcon(QIcon("red_checkmark.png"))
+            self.status_item[item.text()] = False
+            self.listWidget.addItem(item)
+
+        return files_layout
+
+
+
+
 
 
 if __name__ == "__main__":
