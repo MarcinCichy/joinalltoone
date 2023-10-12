@@ -10,75 +10,57 @@
 import sys
 import json
 import fnmatch
-import pathlib
 from pathlib import Path
 from PyQt5 import QtCore,  QtWidgets
 from PyQt5.QtGui import QIcon
 from OpenFileDialog import OpenFileDialog
 from SaveFileDialog import SaveFileDialog
 
-# path = pathlib.Path.cwd()
 
 class Ui_MainWindow(object):
+
     def __init__(self):
-        self.icons_list = None
-        self.icon_index = 0
-        self.icons = None
-        self.status_item = {}
-        self.all_files_content = {}
-        self.file_type = 'py'
+        self.on_item_clicked = None
+        self.clear_list_of_files = None
+        self.join_files = None
+        self.open_file_dialog = None
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1040, 557)
+        MainWindow.resize(943, 535)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
+        MainWindow.setMaximumSize(QtCore.QSize(943, 535))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox.setGeometry(QtCore.QRect(10, 70, 111, 81))
-        self.groupBox.setObjectName("groupBox")
-        self.radioButtonPyFile = QtWidgets.QRadioButton(self.groupBox)
-        self.radioButtonPyFile.setGeometry(QtCore.QRect(10, 20, 82, 18))
-        self.radioButtonPyFile.setObjectName("radioButtonPyFile")
-        self.radioButtonOtherFile = QtWidgets.QRadioButton(self.groupBox)
-        self.radioButtonOtherFile.setGeometry(QtCore.QRect(10, 40, 82, 18))
-        self.radioButtonOtherFile.setObjectName("radioButtonOtherFile")
-        self.lineEdit = QtWidgets.QLineEdit(self.groupBox)
-        self.lineEdit.setGeometry(QtCore.QRect(60, 40, 41, 20))
-        self.lineEdit.setObjectName("lineEdit")
         self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_2.setGeometry(QtCore.QRect(130, 10, 611, 471))
+        self.groupBox_2.setGeometry(QtCore.QRect(10, 10, 611, 471))
         self.groupBox_2.setObjectName("groupBox_2")
         self.textEdit = QtWidgets.QTextEdit(self.groupBox_2)
         self.textEdit.setGeometry(QtCore.QRect(10, 30, 571, 421))
         self.textEdit.setObjectName("textEdit")
         self.groupBox_3 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_3.setGeometry(QtCore.QRect(750, 10, 281, 471))
+        self.groupBox_3.setGeometry(QtCore.QRect(640, 10, 281, 471))
         self.groupBox_3.setObjectName("groupBox_3")
         self.listWidget = QtWidgets.QListWidget(self.groupBox_3)
         self.listWidget.setGeometry(QtCore.QRect(10, 30, 251, 431))
         self.listWidget.setObjectName("listWidget")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(10, 20, 101, 23))
+        self.pushButton.setGeometry(QtCore.QRect(640, 500, 101, 23))
         self.pushButton.setObjectName("pushButton")
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(140, 500, 91, 21))
+        self.pushButton_2.setGeometry(QtCore.QRect(10, 500, 91, 21))
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_3.setGeometry(QtCore.QRect(760, 500, 75, 23))
+        self.pushButton_3.setGeometry(QtCore.QRect(840, 500, 75, 23))
         self.pushButton_3.setObjectName("pushButton_3")
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox.setGeometry(QtCore.QRect(250, 500, 111, 18))
+        self.checkBox.setGeometry(QtCore.QRect(120, 500, 111, 18))
         self.checkBox.setObjectName("checkBox")
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1040, 20))
-        self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -88,36 +70,24 @@ class Ui_MainWindow(object):
         self.pushButton_2.clicked.connect(self.join_files)
         self.pushButton_3.clicked.connect(self.clear_list_of_files)
         self.listWidget.itemClicked.connect(self.on_item_clicked)
-        self.radioButtonPyFile.toggled.connect(self.onClicked)
-        self.radioButtonOtherFile.toggled.connect(self.onClicked)
-
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.groupBox.setTitle(_translate("MainWindow", "File Types"))
-        self.radioButtonPyFile.setText(_translate("MainWindow", "PY"))
-        self.radioButtonOtherFile.setText(_translate("MainWindow", "Other"))
-        self.groupBox_2.setTitle(_translate("MainWindow", "All Files Combined"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Join All Files To One"))
+        self.groupBox_2.setTitle(_translate("MainWindow", "Joined All Files"))
         self.groupBox_3.setTitle(_translate("MainWindow", "Files to Select"))
-        self.pushButton.setText(_translate("MainWindow", "SELECT FILES"))
+        self.pushButton.setText(_translate("MainWindow", "Select Files"))
         self.pushButton_2.setText(_translate("MainWindow", "JOIN"))
-        self.pushButton_3.setText(_translate("MainWindow", "CLEAR"))
-        self.checkBox.setText(_translate("MainWindow", "with configuration"))
+        self.pushButton_3.setText(_translate("MainWindow", "Clear"))
+        self.checkBox.setText(_translate("MainWindow", "with layout"))
 
-    def onClicked(self):
-        global file_type                                    # ???
 
-        if self.radioButtonOtherFile.isChecked():
-            if len(self.lineEdit.text()) != 0:
-                self.file_type = (self.lineEdit.text().lower())
-            else:
-                self.file_type = 'html'
-        elif self.radioButtonPyFile.isChecked():
-            self.file_type = 'py'
-            self.lineEdit.clear()
-        return self.file_type
+class FilesJoiner(Ui_MainWindow):
+    def __init__(self):
+        # super().__init__()
+        self.status_item = {}
+        self.all_files_content = {}
+        self.file_type = 'py'
 
     def open_file_dialog(self):
         self.textEdit.clear()
@@ -137,8 +107,9 @@ class Ui_MainWindow(object):
                     self.status_item[item.text()] = False
                     self.listWidget.addItem(item)
             else:
+                self.clear_list_of_files()
                 self.all_files_content = self.read_files_layout(file_name)
-                print(f"z odczytu: {self.all_files_content}")
+                self.show_file_content()
 
     def on_item_clicked(self, item):
         current_status = self.status_item.get(item.text(), False)
@@ -178,7 +149,6 @@ class Ui_MainWindow(object):
         joined_text = self.textEdit.toPlainText()
         save_file_dialog = SaveFileDialog()
         if self.checkBox.isChecked():
-            print(self.all_files_content)
             save_file_dialog.set_file_path(joined_text, self.all_files_content)
         else:
             save_file_dialog.set_file_path(joined_text, None)
@@ -189,27 +159,24 @@ class Ui_MainWindow(object):
         self.all_files_content = {}
 
     def read_files_layout(self, file_name):
+
         with open(file_name, 'r', encoding='utf-8') as file:
             files_layout = json.load(file)
 
         for key in files_layout.keys():
-            print(key)
             item = QtWidgets.QListWidgetItem(key)
-            item.setIcon(QIcon("red_checkmark.png"))
-            self.status_item[item.text()] = False
+            if files_layout[key]["content"]:
+                item.setIcon(QIcon("green_checkmark.png"))
+            else:
+                item.setIcon(QIcon("red_checkmark.png"))
             self.listWidget.addItem(item)
-
         return files_layout
-
-
-
-
 
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
+    ui = FilesJoiner()
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
