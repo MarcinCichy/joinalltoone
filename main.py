@@ -20,15 +20,6 @@ from SaveFileDialog import SaveFileDialog
 
 
 class Ui_MainWindow(object):
-
-    # def __init__(self):
-    #     self.on_item_clicked = None
-    #     self.clear_list_of_files = None
-    #     self.join_files = None
-    #     self.open_file_dialog = None
-    def on_item_clicked(self):
-        pass
-
     def clear_list_of_files(self):
         pass
 
@@ -36,6 +27,9 @@ class Ui_MainWindow(object):
         pass
 
     def open_file_dialog(self):
+        pass
+
+    def on_item_clicked(self, item):
         pass
 
     def setupUi(self, MainWindow):
@@ -96,6 +90,18 @@ class Ui_MainWindow(object):
 
 
 class FilesJoiner(Ui_MainWindow):
+    """
+    A class to combine multiple source code files into one file, as follows:
+
+    FILE: file name
+
+    file content
+
+
+    FILE: name of the next file
+
+    content of the next file
+    """
     def __init__(self):
         super().__init__()
         self.status_item = {}
@@ -103,6 +109,23 @@ class FilesJoiner(Ui_MainWindow):
         self.file_type = 'py'
 
     def open_file_dialog(self):
+        """
+        A method used to load the names of a file or files using a dialog box, taking into account the defined file type
+         (in this case .py).
+        This method also allows you to load a previously saved file layout (.layout file type) in order to continue
+        working on them.
+
+        If new files are indicated, they are marked with a red icon.
+        If a previously saved file arrangement has been loaded, they receive the same markings
+        as they had at the time of saving and the content of the linked file is restored.
+
+        The "all_files_content" dictionary is created, where the names of the files selected in the dialog box
+        are inserted as keys. The values are dictionaries containing the keys "path" -> with a value indicating
+        the path to the file and the key "content" -> at the moment of creation it has an empty value,
+        which is completed when the file is indicated for connection.
+
+        File types with the .layout extension are saved and loaded using JSON.
+        """
         self.textEdit.clear()
         open_file_dialog = OpenFileDialog()
         file_paths = open_file_dialog.get_file_path(self.file_type)
@@ -122,22 +145,36 @@ class FilesJoiner(Ui_MainWindow):
             else:
                 self.clear_list_of_files()
                 self.all_files_content = self.read_files_layout(file_name)
+                for file_name in self.all_files_content.keys():
+                    if self.all_files_content[file_name]['content']:
+                        self.status_item[file_name] = True
+                    else:
+                        self.status_item[file_name] = False
                 self.show_file_content()
 
     def on_item_clicked(self, item):
-        current_status = self.status_item.get(item.text(), False)
-        new_status = not current_status
+        """
+        Method that changes the status of a file and its icon after clicking on it (False = not selected, red icon;
+        True = selected, green icon).
+        Depending on the status, the file content and its name appear in the "Joined All Files" window
+        or are removed from it.
+        """
+        icon_paths = ("green_checkmark.png", "red_checkmark.png")
+
+        new_status = not self.status_item.get(item.text(), False)
         self.status_item[item.text()] = new_status
-        self.change_icon(item, new_status, "green_checkmark.png", "red_checkmark.png")
+        self.change_icon(item, new_status, *icon_paths)
 
         if new_status:
             self.load_file_content(item)
-            self.show_file_content()
         elif not new_status:
             self.all_files_content[item.text()]['content'] = []
-            self.show_file_content()
+        self.show_file_content()
 
     def change_icon(self, item, status, icon_path_true, icon_path_false):
+        """
+        A method that changes the icon next to a file. The icon indicates which file has been selected to attach.
+        """
         try:
             if not status:
                 item.setIcon(QIcon(icon_path_false))
@@ -147,6 +184,10 @@ class FilesJoiner(Ui_MainWindow):
             print(f"Error  loading icons: {str(e)}")
 
     def load_file_content(self, item):
+        """
+        A method that reads the contents of a code file, if this file has been selected for inclusion (green icon).
+        The content of the file is added to the dictionary, where all indicated files (marked and unmarked) are located.
+        """
         file_to_read = self.all_files_content.get(item.text())
         try:
             with open(file_to_read['path'], 'r', encoding='utf-8') as file:
@@ -156,6 +197,11 @@ class FilesJoiner(Ui_MainWindow):
             print(f"Error reading file: {str(e)}")
 
     def show_file_content(self):
+        """
+        A method that displays the content of all selected files (with a green icon) in the editing window
+        ("Joined All Files"). This content is read from the "all_files_content" dictionary.
+        Thanks to this, the order of the file contents is the same as the order of files in the window for selecting them.
+        """
         self.textEdit.clear()
         for file_name, file_content in self.all_files_content.items():
             if file_content['content']:
@@ -164,6 +210,12 @@ class FilesJoiner(Ui_MainWindow):
                 self.textEdit.insertPlainText(content_str + '\n\n')
 
     def join_files(self):
+        """
+        A method that, after clicking the "JOIN" button, saves (using a dialog box) a file with the contents of
+        all selected (green icon) files.
+        Additionally, if the "with layout" checkbox is checked, a file with the "all_files_content" dictionary is saved
+        using the dialog box for later restoration and continuation of work.
+        """
         joined_text = self.textEdit.toPlainText()
         save_file_dialog = SaveFileDialog()
         if self.checkBox.isChecked():
@@ -175,8 +227,16 @@ class FilesJoiner(Ui_MainWindow):
         self.listWidget.clear()
         self.textEdit.clear()
         self.all_files_content = {}
+        self.status_item = {}
 
     def read_files_layout(self, file_name):
+        """
+        A method that reads the contents of a file with the .layout extension and recreates the file layout in the file
+        selection window (icons and file statuses that were marked and deselected at the time of saving).
+        Based on it, the contents of the file with the combined content are recreated.
+
+        Recreating the layout uses JSON
+        """
 
         with open(file_name, 'r', encoding='utf-8') as file:
             files_layout = json.load(file)
