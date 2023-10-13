@@ -16,8 +16,9 @@ class SaveFileDialog (QMainWindow):
                 file.write(joined_text)
             if all_files_content:
                 file_name_conf = Path(file_name).stem
-                with open(file_name_conf + '.joined', 'w') as file_name_conf:
+                with open(file_name_conf + '.layout', 'w') as file_name_conf:
                     file_name_conf.write(json.dumps(all_files_content))
+
 
 def main():
     app = QApplication(sys.argv)
