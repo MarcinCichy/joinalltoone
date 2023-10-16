@@ -8,11 +8,14 @@ class OpenFileDialog (QMainWindow):
     def __init__(self):
         super().__init__()
 
-    def get_file_path(self, file_type='*'):
-        home_dir = str(Path.home())
-        filter = f"{file_type.upper()} files (*.{file_type});;All Files (*)"
-        file_names, _ = QFileDialog.getOpenFileNames(self, 'Open file', home_dir, filter)
-        return file_names
+    try:
+        def get_file_path(self, file_type='*'):
+            home_dir = str(Path.home())
+            filter = f"{file_type.upper()} files (*.{file_type});;All Files (*)"
+            file_names, _ = QFileDialog.getOpenFileNames(self, 'Open file', home_dir, filter)
+            return file_names
+    except Exception as e:
+        print(f"Error reading file: {str(e)}")
 
 
 def main():

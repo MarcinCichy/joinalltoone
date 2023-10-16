@@ -11,6 +11,7 @@ from pathlib import Path
 import sys
 import json
 import fnmatch
+# import magic
 
 from PyQt5 import QtCore,  QtWidgets
 from PyQt5.QtGui import QIcon
@@ -132,6 +133,7 @@ class FilesJoiner(Ui_MainWindow):
 
         for file_path in file_paths:
             file_name = Path(file_path).name
+            # if self.is_text_file(file_name):
 
             if Path(file_name).suffix != ".layout":
 
@@ -151,6 +153,8 @@ class FilesJoiner(Ui_MainWindow):
                     else:
                         self.status_item[file_name] = False
                 self.show_file_content()
+            # else:
+            #     print("To nie jest plik tekstowy")
 
     def on_item_clicked(self, item):
         """
@@ -188,11 +192,9 @@ class FilesJoiner(Ui_MainWindow):
         A method that reads the contents of a code file, if this file has been selected for inclusion (green icon).
         The content of the file is added to the dictionary, where all indicated files (marked and unmarked) are located.
         """
-        file_to_read = self.all_files_content.get(item.text())
         try:
-            with open(file_to_read['path'], 'r', encoding='utf-8') as file:
-                file_lines = file.readlines()
-                file_to_read['content'] = file_lines
+            with open(self.all_files_content.get(item.text())['path'], 'r', encoding='utf-8') as file:
+                self.all_files_content.get(item.text())['content'] = file.readlines()
         except Exception as e:
             print(f"Error reading file: {str(e)}")
 
@@ -216,7 +218,12 @@ class FilesJoiner(Ui_MainWindow):
         Additionally, if the "with layout" checkbox is checked, a file with the "all_files_content" dictionary is saved
         using the dialog box for later restoration and continuation of work.
         """
-        joined_text = self.textEdit.toPlainText()
+        joined_text = ''
+        for file_name, file_content in self.all_files_content.items():
+            if file_content['content']:
+                joined_text += f"FILE: {file_name} \n\n {''.join(file_content['content'])} \n\n"
+                print(joined_text)
+
         save_file_dialog = SaveFileDialog()
         if self.checkBox.isChecked():
             save_file_dialog.set_file_path(joined_text, self.all_files_content)
@@ -237,9 +244,11 @@ class FilesJoiner(Ui_MainWindow):
 
         Recreating the layout uses JSON
         """
-
-        with open(file_name, 'r', encoding='utf-8') as file:
-            files_layout = json.load(file)
+        try:
+            with open(file_name, 'r', encoding='utf-8') as file:
+                files_layout = json.load(file)
+        except Exception as e:
+            print(f"Error reading file: {str(e)}")
 
         for key in files_layout.keys():
             item = QtWidgets.QListWidgetItem(key)
@@ -249,6 +258,11 @@ class FilesJoiner(Ui_MainWindow):
                 item.setIcon(QIcon("red_checkmark.png"))
             self.listWidget.addItem(item)
         return files_layout
+
+    def is_text_file(self, filename):
+        mime = magic.MAgic(mime=True)
+        filetype = mime.from_file(filename)
+        return filetype.startswitch('text/')
 
 
 if __name__ == "__main__":

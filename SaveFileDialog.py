@@ -10,14 +10,17 @@ class SaveFileDialog (QMainWindow):
         super().__init__()
 
     def set_file_path(self, joined_text, all_files_content):  # , file_type='*'
-        file_name, _ = QFileDialog.getSaveFileName(self, "Save Joined File", "", "Text Files (*.txt);;All Files (*)")  # , options=options
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save Joined File", "", "Text Files (*.txt);;All Files (*)")
         if file_name:
-            with open(file_name, 'w') as file:
-                file.write(joined_text)
-            if all_files_content:
-                file_name_conf = Path(file_name).stem
-                with open(file_name_conf + '.layout', 'w') as file_name_conf:
-                    file_name_conf.write(json.dumps(all_files_content))
+            try:
+                with open(file_name, 'w') as file:
+                    file.write(joined_text)
+                if all_files_content:
+                    file_name_conf = Path(file_name).stem
+                    with open(file_name_conf + '.layout', 'w') as file_name_conf:
+                        file_name_conf.write(json.dumps(all_files_content))
+            except Exception as e:
+                print(f"Error saving file: {str(e)}")
 
 
 def main():
