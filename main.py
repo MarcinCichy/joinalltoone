@@ -135,28 +135,31 @@ class FilesJoiner(Ui_MainWindow):
 
         for file_path in file_paths:
             file_name = Path(file_path).name
-            print(file_name)
+            print(file_path)
 
+            if self.is_text_file(file_path):
 
+                if Path(file_name).suffix != ".layout":
 
-            if Path(file_name).suffix != ".layout":
+                    self.all_files_content[file_name] = {'path': file_path, 'content': []}
 
-                self.all_files_content[file_name] = {'path': file_path, 'content': []}
-
-                if fnmatch.fnmatch(file_name, '*.' + self.file_type):
-                    item = QtWidgets.QListWidgetItem(file_name)
-                    item.setIcon(QIcon("red_checkmark.png"))
-                    self.status_item[item.text()] = False
-                    self.listWidget.addItem(item)
+                    if fnmatch.fnmatch(file_name, '*.' + self.file_type):
+                        item = QtWidgets.QListWidgetItem(file_name)
+                        item.setIcon(QIcon("red_checkmark.png"))
+                        self.status_item[item.text()] = False
+                        self.listWidget.addItem(item)
+                else:
+                    self.clear_list_of_files()
+                    self.all_files_content = self.read_files_layout(file_name)
+                    for file_name in self.all_files_content.keys():
+                        if self.all_files_content[file_name]['content']:
+                            self.status_item[file_name] = True
+                        else:
+                            self.status_item[file_name] = False
+                    self.show_file_content()
             else:
-                self.clear_list_of_files()
-                self.all_files_content = self.read_files_layout(file_name)
-                for file_name in self.all_files_content.keys():
-                    if self.all_files_content[file_name]['content']:
-                        self.status_item[file_name] = True
-                    else:
-                        self.status_item[file_name] = False
-                self.show_file_content()
+                message = f"This is not a text file"
+                self.show_message(message)
 
     def on_item_clicked(self, item):
         """
@@ -270,7 +273,7 @@ class FilesJoiner(Ui_MainWindow):
     def is_text_file(self, filename):
         mime = magic.Magic(mime=True)
         filetype = mime.from_file(filename)
-        return filetype.startswitch('text/')
+        return filetype.startswith('text/')
 
     def show_message(self, message):
         msgbox = QMessageBox()
