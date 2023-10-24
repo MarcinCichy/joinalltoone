@@ -135,12 +135,10 @@ class FilesJoiner(Ui_MainWindow):
 
         for file_path in file_paths:
             file_name = Path(file_path).name
-            print(file_path)
 
             if self.is_text_file(file_path):
 
                 if Path(file_name).suffix != ".layout":
-
                     self.all_files_content[file_name] = {'path': file_path, 'content': []}
 
                     if fnmatch.fnmatch(file_name, '*.' + self.file_type):
