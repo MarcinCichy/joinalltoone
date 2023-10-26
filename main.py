@@ -22,6 +22,8 @@ from OpenFileDialog import OpenFileDialog
 from SaveFileDialog import SaveFileDialog
 
 
+print(magic.__file__)
+
 class Ui_MainWindow(object):
     def clear_list_of_files(self):
         pass
