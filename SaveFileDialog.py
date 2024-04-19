@@ -10,7 +10,8 @@ class SaveFileDialog (QMainWindow):
         super().__init__()
 
     def set_file_path(self, joined_text, all_files_content):
-        file_name, _ = QFileDialog.getSaveFileName(self, "Save Joined File", "", "Text Files (*.txt);;All Files (*)")
+        default_name = "full.cr.txt"
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save Joined File", default_name, "Text Files (*.txt);;All Files (*)")
         if file_name:
             try:
                 with open(file_name, 'w') as file:

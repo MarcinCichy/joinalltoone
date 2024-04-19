@@ -24,6 +24,7 @@ from SaveFileDialog import SaveFileDialog
 
 print(magic.__file__)
 
+
 class Ui_MainWindow(object):
     def clear_list_of_files(self):
         pass
@@ -97,12 +98,12 @@ class Ui_MainWindow(object):
 class FilesJoiner(Ui_MainWindow):
     """
     A class to combine multiple source code files into one file, as follows:
-
+    ====================
     FILE: file name
 
     file content
 
-
+    ====================
     FILE: name of the next file
 
     content of the next file
@@ -134,6 +135,8 @@ class FilesJoiner(Ui_MainWindow):
         self.textEdit.clear()
         open_file_dialog = OpenFileDialog()
         file_paths = open_file_dialog.get_file_path(self.file_type)
+
+        # folderpath = QtWidgets.QFileDialog.getExistingDirectory(None, 'Wybierz Folder')
 
         for file_path in file_paths:
             file_name = Path(file_path).name
@@ -216,6 +219,7 @@ class FilesJoiner(Ui_MainWindow):
         self.textEdit.clear()
         for file_name, file_content in self.all_files_content.items():
             if file_content['content']:
+                self.textEdit.insertPlainText(f"==================== \n")
                 self.textEdit.insertPlainText(f"FILE: {file_name} \n\n")
                 content_str = ''.join(file_content['content'])
                 self.textEdit.insertPlainText(content_str + '\n\n')
@@ -230,7 +234,8 @@ class FilesJoiner(Ui_MainWindow):
         joined_text = ''
         for file_name, file_content in self.all_files_content.items():
             if file_content['content']:
-                joined_text += f"FILE: {file_name} \n\n {''.join(file_content['content'])} \n\n"
+                joined_text += f"==================== \n"
+                joined_text += f"FILE: {file_name} \n\n{''.join(file_content['content'])} \n\n"
                 print(joined_text)
 
         save_file_dialog = SaveFileDialog()
