@@ -22,9 +22,6 @@ from OpenFileDialog import OpenFileDialog
 from SaveFileDialog import SaveFileDialog
 
 
-print(magic.__file__)
-
-
 class Ui_MainWindow(object):
     def clear_list_of_files(self):
         pass
@@ -136,13 +133,10 @@ class FilesJoiner(Ui_MainWindow):
         open_file_dialog = OpenFileDialog()
         file_paths = open_file_dialog.get_file_path(self.file_type)
 
-        # folderpath = QtWidgets.QFileDialog.getExistingDirectory(None, 'Wybierz Folder')
-
         for file_path in file_paths:
             file_name = Path(file_path).name
 
             if self.is_text_file(file_path):
-
                 if Path(file_name).suffix != ".layout":
                     self.all_files_content[file_name] = {'path': file_path, 'content': []}
 
@@ -218,9 +212,11 @@ class FilesJoiner(Ui_MainWindow):
         """
         self.textEdit.clear()
         for file_name, file_content in self.all_files_content.items():
+
             if file_content['content']:
+                path = file_content["path"]
                 self.textEdit.insertPlainText(f"==================== \n")
-                self.textEdit.insertPlainText(f"FILE: {file_name} \n\n")
+                self.textEdit.insertPlainText(f"FILE: {path} \n\n")
                 content_str = ''.join(file_content['content'])
                 self.textEdit.insertPlainText(content_str + '\n\n')
 
@@ -233,9 +229,10 @@ class FilesJoiner(Ui_MainWindow):
         """
         joined_text = ''
         for file_name, file_content in self.all_files_content.items():
+            path = file_content["path"]
             if file_content['content']:
                 joined_text += f"==================== \n"
-                joined_text += f"FILE: {file_name} \n\n{''.join(file_content['content'])} \n\n"
+                joined_text += f"FILE: {path} \n\n{''.join(file_content['content'])} \n\n"
                 print(joined_text)
 
         save_file_dialog = SaveFileDialog()
