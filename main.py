@@ -19,6 +19,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 
 from OpenFileDialog import OpenFileDialog
+from OpenDirectoryDialog  import OpenDirectoryDialog
 from SaveFileDialog import SaveFileDialog
 
 
@@ -30,6 +31,9 @@ class Ui_MainWindow(object):
         pass
 
     def open_file_dialog(self):
+        pass
+
+    def open_directory_dialog(self):
         pass
 
     def on_item_clicked(self, item):
@@ -67,11 +71,16 @@ class Ui_MainWindow(object):
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_3.setGeometry(QtCore.QRect(840, 500, 75, 23))
         self.pushButton_3.setObjectName("pushButton_3")
+        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_4.setGeometry(QtCore.QRect(250, 500, 75, 23))
+        self.pushButton_4.setObjectName("pushButton_4")
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox.setGeometry(QtCore.QRect(120, 500, 111, 18))
         self.checkBox.setObjectName("checkBox")
+        self.label_main_directory = QtWidgets.QLabel(self.centralwidget)
+        self.label_main_directory.setGeometry(QtCore.QRect(350, 500, 75, 23))
+        self.label_main_directory.setVisible(False)
         MainWindow.setCentralWidget(self.centralwidget)
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -79,6 +88,7 @@ class Ui_MainWindow(object):
         self.pushButton.clicked.connect(self.open_file_dialog)
         self.pushButton_2.clicked.connect(self.join_files)
         self.pushButton_3.clicked.connect(self.clear_list_of_files)
+        self.pushButton_4.clicked.connect(self.open_directory_dialog)
         self.listWidget.itemClicked.connect(self.on_item_clicked)
 
     def retranslateUi(self, MainWindow):
@@ -89,6 +99,7 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Select Files"))
         self.pushButton_2.setText(_translate("MainWindow", "JOIN"))
         self.pushButton_3.setText(_translate("MainWindow", "Clear"))
+        self.pushButton_4.setText(_translate("MainWindow", "Main Folder"))
         self.checkBox.setText(_translate("MainWindow", "with layout"))
 
 
@@ -110,6 +121,7 @@ class FilesJoiner(Ui_MainWindow):
         self.status_item = {}
         self.all_files_content = {}
         self.file_type = 'py'
+        self.main_directory = ''
 
     def open_file_dialog(self):
         """
@@ -157,6 +169,14 @@ class FilesJoiner(Ui_MainWindow):
             else:
                 message = f"This is not a text file"
                 self.show_message(message)
+
+    def open_directory_dialog(self):
+        open_directory_dialog = OpenDirectoryDialog()
+        self.main_directory = open_directory_dialog.get_directory_path()
+        print(self.main_directory)
+        self.label_main_directory.setVisible(True)
+        self.label_main_directory.setText(self.main_directory)
+        return self.main_directory
 
     def on_item_clicked(self, item):
         """
@@ -214,9 +234,10 @@ class FilesJoiner(Ui_MainWindow):
         for file_name, file_content in self.all_files_content.items():
 
             if file_content['content']:
-                path = file_content["path"]
+                full_path = file_content["path"]
+                shorten_path = self.shorten_path(full_path, self.main_directory)
                 self.textEdit.insertPlainText(f"==================== \n")
-                self.textEdit.insertPlainText(f"FILE: {path} \n\n")
+                self.textEdit.insertPlainText(f"FILE: {shorten_path } \n\n")
                 content_str = ''.join(file_content['content'])
                 self.textEdit.insertPlainText(content_str + '\n\n')
 
@@ -229,10 +250,11 @@ class FilesJoiner(Ui_MainWindow):
         """
         joined_text = ''
         for file_name, file_content in self.all_files_content.items():
-            path = file_content["path"]
+            full_path = file_content["path"]
+            shorten_path = self.shorten_path(full_path, self.main_directory)
             if file_content['content']:
                 joined_text += f"==================== \n"
-                joined_text += f"FILE: {path} \n\n{''.join(file_content['content'])} \n\n"
+                joined_text += f"FILE: {shorten_path} \n\n{''.join(file_content['content'])} \n\n"
                 print(joined_text)
 
         save_file_dialog = SaveFileDialog()
@@ -283,6 +305,13 @@ class FilesJoiner(Ui_MainWindow):
         msgbox.setWindowTitle("Warning")
         msgbox.setText(message)
         msgbox.exec_()
+
+    def shorten_path(self, full_path, directory_name):
+        path_parts = Path(full_path).parts
+        for i, part in enumerate(path_parts):
+            if part == directory_name:
+                return Path(*path_parts[i:]).as_posix()
+        return full_path
 
 
 if __name__ == "__main__":

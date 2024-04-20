@@ -3,20 +3,21 @@ from pathlib import Path
 from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QApplication, QMessageBox)
 
 
-class OpenFileDialog (QMainWindow):
+class OpenDirectoryDialog (QMainWindow):
 
     def __init__(self):
         super().__init__()
 
-    def get_file_path(self, file_type='*'):
+    def get_directory_path(self):
         try:
             home_dir = str(Path.home())
-            filter = f"{file_type.upper()} files (*.{file_type});;All Files (*)"
-            file_names, _ = QFileDialog.getOpenFileNames(self, 'Open file', home_dir, filter)
-            return file_names
+            directory = QFileDialog.getExistingDirectory(self, 'Select Directory', home_dir)
+            if directory:
+                return Path(directory).name
+            return ""
         except Exception as e:
-            print(f"Error reading file: {str(e)}")
-            message = f"Error reading file: {str(e)}"
+            print(f"Error reading directory: {str(e)}")
+            message = f"Error reading directory: {str(e)}"
             self.show_message(message)
 
     def show_message(self, message):
@@ -29,7 +30,7 @@ class OpenFileDialog (QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    ex = OpenFileDialog()
+    ex = OpenDirectoryDialog()
     sys.exit(app.exec_())
 
 

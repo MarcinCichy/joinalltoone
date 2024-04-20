@@ -1,7 +1,7 @@
 import sys
 import json
 from pathlib import Path
-from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QApplication)
+from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QApplication, QMessageBox)
 
 
 class SaveFileDialog (QMainWindow):
@@ -24,6 +24,13 @@ class SaveFileDialog (QMainWindow):
                 print(f"Error saving file: {str(e)}")
                 message = f"Error saving file: {str(e)}"
                 self.show_message(message)
+
+    def show_message(self, message):
+        msgbox = QMessageBox()
+        msgbox.setIcon(QMessageBox.Warning)
+        msgbox.setWindowTitle("Warning")
+        msgbox.setText(message)
+        msgbox.exec_()
 
 
 def main():
