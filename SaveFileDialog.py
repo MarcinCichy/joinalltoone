@@ -17,8 +17,8 @@ class SaveFileDialog (QMainWindow):
                 with open(file_name, 'w') as file:
                     file.write(joined_text)
                 if all_files_content:
-                    file_name_conf = Path(file_name).stem
-                    with open(file_name_conf + '.layout', 'w') as layout_file:
+                    file_name_conf = Path(file_name).with_suffix('.layout')
+                    with open(file_name_conf, 'w') as layout_file:
                         layout_file.write(json.dumps(all_files_content))
             except Exception as e:
                 print(f"Error saving file: {str(e)}")
