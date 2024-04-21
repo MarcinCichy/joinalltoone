@@ -160,7 +160,7 @@ class FilesJoiner(Ui_MainWindow):
                         self.listWidget.addItem(item)
                 else:
                     self.clear_list_of_files()
-                    self.all_files_content = self.read_files_layout(file_name)
+                    self.all_files_content = self.read_files_layout(file_path)
                     for file_name in self.all_files_content.keys():
                         if self.all_files_content[file_name]['content']:
                             self.status_item[file_name] = True
@@ -174,7 +174,6 @@ class FilesJoiner(Ui_MainWindow):
     def open_directory_dialog(self):
         open_directory_dialog = OpenDirectoryDialog()
         self.main_directory = open_directory_dialog.get_directory_path()
-        print(self.main_directory)
         self.label_main_directory.setVisible(True)
         self.label_main_directory.setText(self.main_directory)
         return self.main_directory
@@ -270,6 +269,10 @@ class FilesJoiner(Ui_MainWindow):
         self.all_files_content = {}
         self.status_item = {}
 
+    def get_absolute_path(self, relative_path):
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
+
     def read_files_layout(self, file_name):
         """
         A method that reads the contents of a file with the .layout extension and recreates the file layout in the file
@@ -297,6 +300,8 @@ class FilesJoiner(Ui_MainWindow):
 
     def is_text_file(self, filename):
         if os.path.basename(filename) == '__init__.py':
+            return True
+        if filename.endswith('.py') or filename.endswith('.layout'):
             return True
         mime = magic.Magic(mime=True)
         filetype = mime.from_file(filename)
