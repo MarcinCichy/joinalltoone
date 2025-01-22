@@ -1,35 +1,64 @@
-The program was written for the "Za Rączkę" mentoring program.
+# File Merger Program
 
-The instructor (mentor) asked us to create a program that would combine all the files of our project into one file, named "full.cr.txt.
-This single file should look like:
+This program was developed as part of the **"Za Rączkę"** mentoring program. Its main purpose is to merge the contents of selected files into a single text file according to a specified format.
 
-==================== 
-FILE: file name
+## Screenshot
 
-    file content
+![Main application interface](screenshots/main.png "Main interface")
 
-==================== 
-FILE: name of the next file
+## Features
 
-    content of the next file
+The program allows you to:
+- **Merge Files:** Combine the contents of selected files into one output file (default name: `full.cr.txt`).
+- **Edit Content:** After loading the files, you can edit the content displayed in the "Joined All Files" view.
+- **Manage File Selection:**
+  - Files are loaded using the **"Select Files"** button.
+  - File names appear in the **"Files to Select"** window. Clicking on a file name changes its icon from red to green, indicating that the file has been selected.
+- **Select Main Folder:** Before merging the files, you must choose a relative path and specify the main project folder using the **"Main Folder"** button.
+- **Save Merged Output:** Upon clicking the **"JOIN"** button:
+  - A text file is created containing the content of all selected files in the following format:
+
+    ```
+    ====================
+    FILE: file name
+
+        file content
+
+    ====================
+    FILE: next file name
+
+        next file content
+    ```
+- **Save Layout:** If you check the **"with layout"** option, the program will also save a file with the `.layout` extension. This file stores:
+  - The names of the files that were loaded.
+  - Information about which files were selected.
+
+  This layout file allows you to restore the project state and continue working from where you left off.
+
+## Requirements
+
+- **Python 3.6+**
+- **PyQt5** – the module used for creating the graphical user interface
+
+## Usage
+1. Run the program:
+
+```
+python main.py
+```
+2. Loading Files:
+
+ * Click the "Select Files" button to choose the files you want to merge.
+ * The selected file names will appear in the "Files to Select" window. Clicking on a file name changes its status (red → green) and displays its content in the "Joined All Files" view.
+
+3. Selecting the Main Folder:
+
+ * Click on "Main Folder" and choose the main project folder.
+4. Merging and Saving:
+
+ * Once you have finished editing and selecting the files, click "JOIN". The merged file containing the combined content will be saved with the user-specified name.
+ * If you need to retain the layout, check the "with layout" option – an additional .layout file will be created.
 
 
-This program was written using the PyQt5 module.
-
-
-Using this program, you can combine selected files into the required format.
-
-Files are loaded using the "Select Files" button.
-When their names appear in the right window ("Files to Select"), choose the files you intend to combine into one.
-
-Upon clicking the file name, the icon next to it changes from red to green, and the content of the selected file(s) appears in the required format in the "Joined All Files" window.
-
-In the "Joined All Files" window, you can also edit the files.
-
-Before combining the files into one, you should select a relative path and specify the main project folder using the "Main Folder" button.
-
-After pressing the "JOIN" button, a text file with the user-provided name is saved, which contains the content of all selected files in the required format.
-
-Additionally, when you select the "with layout" option, a file is created that stores information about the read file names and which of them were selected.
-
-Such a file (with the ".layout" extension) can be loaded later and recreate the point when the work of combining files was saved. You can then continue working from that point.
+## Summary
+The program is built using PyQt5, which provides an intuitive graphical interface for easy file selection and merging. This tool is especially useful when you need to consolidate multiple files into one document for projects.
