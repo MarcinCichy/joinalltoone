@@ -62,3 +62,7 @@ python main.py
 
 ## Summary
 The program is built using PyQt5, which provides an intuitive graphical interface for easy file selection and merging. This tool is especially useful when you need to consolidate multiple files into one document for projects.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
