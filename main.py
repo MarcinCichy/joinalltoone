@@ -12,8 +12,7 @@ import sys
 import json
 from pathlib import Path
 import fnmatch
-import magic
-
+# import magic
 
 from PyQt5 import QtCore,  QtWidgets
 from PyQt5.QtGui import QIcon
@@ -40,6 +39,13 @@ class Ui_MainWindow(object):
     def on_item_clicked(self, item):
         pass
 
+    def check_all(self):
+        pass
+
+    def uncheck_all(self):
+        pass
+
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(943, 535)
@@ -63,18 +69,27 @@ class Ui_MainWindow(object):
         self.listWidget = QtWidgets.QListWidget(self.groupBox_3)
         self.listWidget.setGeometry(QtCore.QRect(10, 30, 251, 431))
         self.listWidget.setObjectName("listWidget")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(640, 500, 101, 23))
-        self.pushButton.setObjectName("pushButton")
-        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(10, 500, 91, 21))
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_3.setGeometry(QtCore.QRect(840, 500, 75, 23))
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_4.setGeometry(QtCore.QRect(250, 500, 75, 23))
-        self.pushButton_4.setObjectName("pushButton_4")
+        self.pushButton_SelectFiles = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_SelectFiles.setGeometry(QtCore.QRect(640, 500, 65, 23))
+        self.pushButton_SelectFiles.setObjectName("pushButton_SelectFiles")
+        self.pushButton_JOIN = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_JOIN.setGeometry(QtCore.QRect(10, 500, 91, 21))
+        self.pushButton_JOIN.setObjectName("pushButton_JOIN")
+        self.pushButton_Clear = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_Clear.setGeometry(QtCore.QRect(862, 500, 60, 23))
+        self.pushButton_Clear.setObjectName("pushButton_Clear")
+        # ——— nowe przyciski ———
+        self.pushButton_checkAll = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_checkAll.setGeometry(QtCore.QRect(715, 500, 65, 23))
+        self.pushButton_checkAll.setObjectName("pushButton_checkAll")
+
+        self.pushButton_uncheckAll = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_uncheckAll.setGeometry(QtCore.QRect(790, 500, 65, 23))
+        self.pushButton_uncheckAll.setObjectName("pushButton_uncheckAll")
+        # ——————————————————
+        self.pushButton_MainFolder = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_MainFolder.setGeometry(QtCore.QRect(250, 500, 75, 23))
+        self.pushButton_MainFolder.setObjectName("pushButton_MainFolder")
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox.setGeometry(QtCore.QRect(120, 500, 111, 18))
         self.checkBox.setObjectName("checkBox")
@@ -86,10 +101,12 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
         #  signals, sockets and connections
-        self.pushButton.clicked.connect(self.open_file_dialog)
-        self.pushButton_2.clicked.connect(self.join_files)
-        self.pushButton_3.clicked.connect(self.clear_list_of_files)
-        self.pushButton_4.clicked.connect(self.open_directory_dialog)
+        self.pushButton_SelectFiles.clicked.connect(self.open_file_dialog)
+        self.pushButton_JOIN.clicked.connect(self.join_files)
+        self.pushButton_Clear.clicked.connect(self.clear_list_of_files)
+        self.pushButton_MainFolder.clicked.connect(self.open_directory_dialog)
+        self.pushButton_checkAll.clicked.connect(self.check_all)
+        self.pushButton_uncheckAll.clicked.connect(self.uncheck_all)
         self.listWidget.itemClicked.connect(self.on_item_clicked)
 
     def retranslateUi(self, MainWindow):
@@ -97,10 +114,12 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Join All Files To One"))
         self.groupBox_2.setTitle(_translate("MainWindow", "Joined All Files"))
         self.groupBox_3.setTitle(_translate("MainWindow", "Files to Select"))
-        self.pushButton.setText(_translate("MainWindow", "Select Files"))
-        self.pushButton_2.setText(_translate("MainWindow", "JOIN"))
-        self.pushButton_3.setText(_translate("MainWindow", "Clear"))
-        self.pushButton_4.setText(_translate("MainWindow", "Main Folder"))
+        self.pushButton_SelectFiles.setText(_translate("MainWindow", "Select Files"))
+        self.pushButton_JOIN.setText(_translate("MainWindow", "JOIN"))
+        self.pushButton_Clear.setText(_translate("MainWindow", "Clear"))
+        self.pushButton_checkAll.setText(_translate("MainWindow", "Check All"))
+        self.pushButton_uncheckAll.setText(_translate("MainWindow", "Uncheck All"))
+        self.pushButton_MainFolder.setText(_translate("MainWindow", "Main Folder"))
         self.checkBox.setText(_translate("MainWindow", "with layout"))
 
 
@@ -121,70 +140,44 @@ class FilesJoiner(Ui_MainWindow):
         super().__init__()
         self.status_item = {}
         self.all_files_content = {}
-        self.file_type = 'py'
+        self.file_types = ['py', 'txt', 'json', 'html', 'css', 'layout']
         self.main_directory = ''
 
     def open_file_dialog(self):
-        """
-        A method used to load the names of a file or files using a dialog box, taking into account the defined file type
-         (in this case .py).
-        This method also allows you to load a previously saved file layout (.layout file type) in order to continue
-        working on them.
-
-        If new files are indicated, they are marked with a red icon.
-        If a previously saved file arrangement has been loaded, they receive the same markings
-        as they had at the time of saving and the content of the linked file is restored.
-
-        The "all_files_content" dictionary is created, where the names of the files selected in the dialog box
-        are inserted as keys. The values are dictionaries containing the keys "path" -> with a value indicating
-        the path to the file and the key "content" -> at the moment of creation it has an empty value,
-        which is completed when the file is indicated for connection.
-
-        File types with the .layout extension are saved and loaded using JSON.
-        """
         self.textEdit.clear()
-        open_file_dialog = OpenFileDialog()
-        file_paths = open_file_dialog.get_file_path(self.file_type)
+        dlg = OpenFileDialog()
+        file_paths = dlg.get_file_path(self.file_types)
 
         for file_path in file_paths:
             file_name = Path(file_path).name
+            suffix = Path(file_name).suffix.lower()
 
-            if self.is_text_file(file_path):
-                if Path(file_name).suffix != ".layout":
-                    self.all_files_content[file_name] = {'path': file_path, 'content': []}
+            if suffix == '.layout':
+                self.clear_list_of_files()
+                self.all_files_content = self.read_files_layout(file_path)
+                for fn in self.all_files_content.keys():
+                    self.status_item[fn] = bool(self.all_files_content[fn]['content'])
+                self.show_file_content()
+                continue
 
-                    if fnmatch.fnmatch(file_name, '*.' + self.file_type):
-                        item = QtWidgets.QListWidgetItem(file_name)
-                        item.setIcon(QIcon("red_checkmark.png"))
-                        self.status_item[item.text()] = False
-                        self.listWidget.addItem(item)
-                else:
-                    self.clear_list_of_files()
-                    self.all_files_content = self.read_files_layout(file_path)
-                    for file_name in self.all_files_content.keys():
-                        if self.all_files_content[file_name]['content']:
-                            self.status_item[file_name] = True
-                        else:
-                            self.status_item[file_name] = False
-                    self.show_file_content()
-            else:
-                message = f"This is not a text file"
-                self.show_message(message)
+            # pomiń pliki nierozpoznane
+            if suffix.lstrip('.') not in self.file_types:
+                continue
+
+            self.all_files_content[file_name] = {'path': file_path, 'content': []}
+            item = QtWidgets.QListWidgetItem(file_name)
+            item.setIcon(QIcon("red_checkmark.png"))
+            self.status_item[file_name] = False
+            self.listWidget.addItem(item)
 
     def open_directory_dialog(self):
-        open_directory_dialog = OpenDirectoryDialog()
-        self.main_directory = open_directory_dialog.get_directory_path()
+        dlg = OpenDirectoryDialog()
+        self.main_directory = dlg.get_directory_path()
         self.label_main_directory.setVisible(True)
         self.label_main_directory.setText(self.main_directory)
         return self.main_directory
 
     def on_item_clicked(self, item):
-        """
-        Method that changes the status of a file and its icon after clicking on it (False = not selected, red icon;
-        True = selected, green icon).
-        Depending on the status, the file content and its name appear in the "Joined All Files" window
-        or are removed from it.
-        """
         icon_paths = ("green_checkmark.png", "red_checkmark.png")
 
         new_status = not self.status_item.get(item.text(), False)
@@ -193,75 +186,48 @@ class FilesJoiner(Ui_MainWindow):
 
         if new_status:
             self.load_file_content(item)
-        elif not new_status:
+        else:
             self.all_files_content[item.text()]['content'] = []
         self.show_file_content()
 
     def change_icon(self, item, status, icon_path_true, icon_path_false):
-        """
-        A method that changes the icon next to a file. The icon indicates which file has been selected to attach.
-        """
         try:
-            if not status:
-                item.setIcon(QIcon(icon_path_false))
-            else:
-                item.setIcon(QIcon(icon_path_true))
+            item.setIcon(QIcon(icon_path_true if status else icon_path_false))
         except Exception as e:
             print(f"Error  loading icons: {str(e)}")
-            message = f"Error  loading icons: {str(e)}"
-            self.show_message(message)
+            self.show_message(str(e))
 
     def load_file_content(self, item):
-        """
-        A method that reads the contents of a code file, if this file has been selected for inclusion (green icon).
-        The content of the file is added to the dictionary, where all indicated files (marked and unmarked) are located.
-        """
         try:
-            with open(self.all_files_content.get(item.text())['path'], 'r', encoding='utf-8') as file:
-                self.all_files_content.get(item.text())['content'] = file.readlines()
+            with open(self.all_files_content[item.text()]['path'], 'r', encoding='utf-8') as file:
+                self.all_files_content[item.text()]['content'] = file.readlines()
         except Exception as e:
             print(f"Error reading file: {str(e)}")
-            message = f"Error reading file: {str(e)}"
-            self.show_message(message)
+            self.show_message(str(e))
 
     def show_file_content(self):
-        """
-        A method that displays the content of all selected files (with a green icon) in the editing window
-        ("Joined All Files"). This content is read from the "all_files_content" dictionary.
-        Thanks to this, the order of the file contents is the same as the order of files in the window for selecting them.
-        """
         self.textEdit.clear()
-        for file_name, file_content in self.all_files_content.items():
-
-            if file_content['content']:
-                full_path = file_content["path"]
+        for fn, fc in self.all_files_content.items():
+            if fc['content']:
+                full_path = fc['path']
                 shorten_path = self.shorten_path(full_path, self.main_directory)
-                self.textEdit.insertPlainText(f"==================== \n")
-                self.textEdit.insertPlainText(f"FILE: {shorten_path } \n\n")
-                content_str = ''.join(file_content['content'])
-                self.textEdit.insertPlainText(content_str + '\n\n')
+                self.textEdit.insertPlainText("==================== \n")
+                self.textEdit.insertPlainText(f"FILE: {shorten_path} \n\n")
+                self.textEdit.insertPlainText(''.join(fc['content']) + '\n\n')
 
     def join_files(self):
-        """
-        A method that, after clicking the "JOIN" button, saves (using a dialog box) a file with the contents of
-        all selected (green icon) files.
-        Additionally, if the "with layout" checkbox is checked, a file with the "all_files_content" dictionary is saved
-        using the dialog box for later restoration and continuation of work.
-        """
         joined_text = ''
-        for file_name, file_content in self.all_files_content.items():
-            full_path = file_content["path"]
-            shorten_path = self.shorten_path(full_path, self.main_directory)
-            if file_content['content']:
-                joined_text += f"==================== \n"
-                joined_text += f"FILE: {shorten_path} \n\n{''.join(file_content['content'])} \n\n"
-                print(joined_text)
+        for fn, fc in self.all_files_content.items():
+            if fc['content']:
+                full_path = fc['path']
+                shorten_path = self.shorten_path(full_path, self.main_directory)
+                joined_text += f"==================== \nFILE: {shorten_path} \n\n{''.join(fc['content'])}\n\n"
 
-        save_file_dialog = SaveFileDialog()
+        dlg = SaveFileDialog()
         if self.checkBox.isChecked():
-            save_file_dialog.set_file_path(joined_text, self.all_files_content)
+            dlg.set_file_path(joined_text, self.all_files_content)
         else:
-            save_file_dialog.set_file_path(joined_text, None)
+            dlg.set_file_path(joined_text, None)
 
     def clear_list_of_files(self):
         self.listWidget.clear()
@@ -269,25 +235,32 @@ class FilesJoiner(Ui_MainWindow):
         self.all_files_content = {}
         self.status_item = {}
 
-    def get_absolute_path(self, relative_path):
-        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, relative_path)
+    def check_all(self):
+        for i in range(self.listWidget.count()):
+            item = self.listWidget.item(i)
+            if not self.status_item.get(item.text(), False):
+                self.status_item[item.text()] = True
+                self.change_icon(item, True, "green_checkmark.png", "red_checkmark.png")
+                self.load_file_content(item)
+        self.show_file_content()
+
+    def uncheck_all(self):
+        for i in range(self.listWidget.count()):
+            item = self.listWidget.item(i)
+            if self.status_item.get(item.text(), False):
+                self.status_item[item.text()] = False
+                self.change_icon(item, False, "green_checkmark.png", "red_checkmark.png")
+                self.all_files_content[item.text()]['content'] = []
+        self.show_file_content()
 
     def read_files_layout(self, file_name):
-        """
-        A method that reads the contents of a file with the .layout extension and recreates the file layout in the file
-        selection window (icons and file statuses that were marked and deselected at the time of saving).
-        Based on it, the contents of the file with the combined content are recreated.
-
-        Recreating the layout uses JSON
-        """
         try:
             with open(file_name, 'r', encoding='utf-8') as file:
                 files_layout = json.load(file)
         except Exception as e:
             print(f"Error reading file: {str(e)}")
-            message = f"Error reading file: {str(e)}"
-            self.show_message(message)
+            self.show_message(str(e))
+            return {}
 
         for key in files_layout.keys():
             item = QtWidgets.QListWidgetItem(key)
@@ -299,13 +272,15 @@ class FilesJoiner(Ui_MainWindow):
         return files_layout
 
     def is_text_file(self, filename):
-        if os.path.basename(filename) == '__init__.py':
+        ext = Path(filename).suffix.lower()
+        if ext in ('.py', '.txt', '.json', '.html', '.css', '.layout'):
             return True
-        if filename.endswith('.py') or filename.endswith('.layout'):
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                f.read(2048)
             return True
-        mime = magic.Magic(mime=True)
-        filetype = mime.from_file(filename)
-        return filetype.startswith('text/')
+        except Exception:
+            return False
 
     def show_message(self, message):
         msgbox = QMessageBox()
@@ -320,6 +295,10 @@ class FilesJoiner(Ui_MainWindow):
             if part == directory_name:
                 return Path(*path_parts[i:]).as_posix()
         return full_path
+
+    def get_absolute_path(self, relative_path):
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
 
 
 if __name__ == "__main__":
