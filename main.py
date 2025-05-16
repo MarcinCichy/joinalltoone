@@ -45,6 +45,8 @@ class Ui_MainWindow(object):
     def uncheck_all(self):
         pass
 
+    def update_files(self):
+        pass
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -71,7 +73,7 @@ class Ui_MainWindow(object):
         self.listWidget.setObjectName("listWidget")
         self.pushButton_SelectFiles = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_SelectFiles.setGeometry(QtCore.QRect(640, 500, 65, 23))
-        self.pushButton_SelectFiles.setObjectName("pushButton_SelectFiles")
+        self.pushButton_SelectFiles.setObjectName("pushButton__SelectFiles")
         self.pushButton_JOIN = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_JOIN.setGeometry(QtCore.QRect(10, 500, 91, 21))
         self.pushButton_JOIN.setObjectName("pushButton_JOIN")
@@ -87,6 +89,10 @@ class Ui_MainWindow(object):
         self.pushButton_uncheckAll.setGeometry(QtCore.QRect(790, 500, 65, 23))
         self.pushButton_uncheckAll.setObjectName("pushButton_uncheckAll")
         # ——————————————————
+        self.pushButton_Update = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_Update.setGeometry(QtCore.QRect(560, 500, 65, 23))
+        self.pushButton_Update.setObjectName("pushButton_Update")
+
         self.pushButton_MainFolder = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_MainFolder.setGeometry(QtCore.QRect(250, 500, 75, 23))
         self.pushButton_MainFolder.setObjectName("pushButton_MainFolder")
@@ -104,6 +110,7 @@ class Ui_MainWindow(object):
         self.pushButton_SelectFiles.clicked.connect(self.open_file_dialog)
         self.pushButton_JOIN.clicked.connect(self.join_files)
         self.pushButton_Clear.clicked.connect(self.clear_list_of_files)
+        self.pushButton_Update.clicked.connect(self.update_files)
         self.pushButton_MainFolder.clicked.connect(self.open_directory_dialog)
         self.pushButton_checkAll.clicked.connect(self.check_all)
         self.pushButton_uncheckAll.clicked.connect(self.uncheck_all)
@@ -119,6 +126,7 @@ class Ui_MainWindow(object):
         self.pushButton_Clear.setText(_translate("MainWindow", "Clear"))
         self.pushButton_checkAll.setText(_translate("MainWindow", "Check All"))
         self.pushButton_uncheckAll.setText(_translate("MainWindow", "Uncheck All"))
+        self.pushButton_Update.setText(_translate("MainWindow", "Update"))
         self.pushButton_MainFolder.setText(_translate("MainWindow", "Main Folder"))
         self.checkBox.setText(_translate("MainWindow", "with layout"))
 
@@ -140,7 +148,7 @@ class FilesJoiner(Ui_MainWindow):
         super().__init__()
         self.status_item = {}
         self.all_files_content = {}
-        self.file_types = ['py', 'txt', 'json', 'html', 'css', 'layout']
+        self.file_types = ['py', 'txt', 'json', 'html', 'css']
         self.main_directory = ''
 
     def open_file_dialog(self):
@@ -160,7 +168,6 @@ class FilesJoiner(Ui_MainWindow):
                 self.show_file_content()
                 continue
 
-            # pomiń pliki nierozpoznane
             if suffix.lstrip('.') not in self.file_types:
                 continue
 
@@ -179,7 +186,6 @@ class FilesJoiner(Ui_MainWindow):
 
     def on_item_clicked(self, item):
         icon_paths = ("green_checkmark.png", "red_checkmark.png")
-
         new_status = not self.status_item.get(item.text(), False)
         self.status_item[item.text()] = new_status
         self.change_icon(item, new_status, *icon_paths)
@@ -253,14 +259,29 @@ class FilesJoiner(Ui_MainWindow):
                 self.all_files_content[item.text()]['content'] = []
         self.show_file_content()
 
+    def update_files(self):
+        # ponowne wczytanie zawartości na dysku, zachowując status plików
+        for fn, fc in self.all_files_content.items():
+            path = fc['path']
+            if self.status_item.get(fn, False):
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        self.all_files_content[fn]['content'] = f.readlines()
+                except Exception as e:
+                    print(f"Error updating file: {e}")
+                    self.show_message(str(e))
+            else:
+                self.all_files_content[fn]['content'] = []
+        self.show_file_content()
+
     def read_files_layout(self, file_name):
         try:
             with open(file_name, 'r', encoding='utf-8') as file:
                 files_layout = json.load(file)
         except Exception as e:
             print(f"Error reading file: {str(e)}")
-            self.show_message(str(e))
-            return {}
+            message = f"Error reading file: {str(e)}"
+            self.show_message(message)
 
         for key in files_layout.keys():
             item = QtWidgets.QListWidgetItem(key)
