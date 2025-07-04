@@ -60,6 +60,7 @@ python main.py
 3. Selecting the Main Folder:
 
 * Click on "Main Folder" and choose the main project folder.
+* After selecting the folder, You can click on the "Auto Search" button to automatically find files in the selected folder and subfolders. The program will search for files with the extensions `.py`, `.html`, `.js`, `.css`, `.txt`.
 
 4. Merging and Saving:
 

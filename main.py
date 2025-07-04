@@ -1,3 +1,5 @@
+# FILE: E:/Programowanie/Project/JoinAllFiles/main.py
+
 # -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'main_join_all_files.ui'
@@ -14,16 +16,23 @@ from pathlib import Path
 import fnmatch
 # import magic
 
-from PyQt5 import QtCore,  QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 
 from OpenFileDialog import OpenFileDialog
-from OpenDirectoryDialog  import OpenDirectoryDialog
+from OpenDirectoryDialog import OpenDirectoryDialog
 from SaveFileDialog import SaveFileDialog
 
 
 class Ui_MainWindow(object):
+    # --- POCZĄTEK MODYFIKACJI ---
+    # Dodano puste definicje nowych metod, aby uniknąć błędów
+    def auto_search_files(self):
+        pass
+
+    # --- KONIEC MODYFIKACJI ---
+
     def clear_list_of_files(self):
         pass
 
@@ -73,7 +82,7 @@ class Ui_MainWindow(object):
         self.listWidget.setObjectName("listWidget")
         self.pushButton_SelectFiles = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_SelectFiles.setGeometry(QtCore.QRect(640, 500, 65, 23))
-        self.pushButton_SelectFiles.setObjectName("pushButton__SelectFiles")
+        self.pushButton_SelectFiles.setObjectName("pushButton_SelectFiles")
         self.pushButton_JOIN = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_JOIN.setGeometry(QtCore.QRect(10, 500, 91, 21))
         self.pushButton_JOIN.setObjectName("pushButton_JOIN")
@@ -96,11 +105,18 @@ class Ui_MainWindow(object):
         self.pushButton_MainFolder = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_MainFolder.setGeometry(QtCore.QRect(250, 500, 75, 23))
         self.pushButton_MainFolder.setObjectName("pushButton_MainFolder")
+
+        # --- POCZĄTEK MODYFIKACJI: Dodanie nowego przycisku Auto Search ---
+        self.pushButton_AutoSearch = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_AutoSearch.setGeometry(QtCore.QRect(335, 500, 85, 23))
+        self.pushButton_AutoSearch.setObjectName("pushButton_AutoSearch")
+        # --- KONIEC MODYFIKACJI ---
+
         self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox.setGeometry(QtCore.QRect(120, 500, 111, 18))
         self.checkBox.setObjectName("checkBox")
         self.label_main_directory = QtWidgets.QLabel(self.centralwidget)
-        self.label_main_directory.setGeometry(QtCore.QRect(350, 500, 75, 23))
+        self.label_main_directory.setGeometry(QtCore.QRect(430, 500, 120, 23))
         self.label_main_directory.setVisible(False)
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
@@ -112,6 +128,11 @@ class Ui_MainWindow(object):
         self.pushButton_Clear.clicked.connect(self.clear_list_of_files)
         self.pushButton_Update.clicked.connect(self.update_files)
         self.pushButton_MainFolder.clicked.connect(self.open_directory_dialog)
+
+        # --- POCZĄTEK MODYFIKACJI: Podłączenie sygnału dla nowego przycisku ---
+        self.pushButton_AutoSearch.clicked.connect(self.auto_search_files)
+        # --- KONIEC MODYFIKACJI ---
+
         self.pushButton_checkAll.clicked.connect(self.check_all)
         self.pushButton_uncheckAll.clicked.connect(self.uncheck_all)
         self.listWidget.itemClicked.connect(self.on_item_clicked)
@@ -128,6 +149,11 @@ class Ui_MainWindow(object):
         self.pushButton_uncheckAll.setText(_translate("MainWindow", "Uncheck All"))
         self.pushButton_Update.setText(_translate("MainWindow", "Update"))
         self.pushButton_MainFolder.setText(_translate("MainWindow", "Main Folder"))
+
+        # --- POCZĄTEK MODYFIKACJI: Ustawienie tekstu dla nowego przycisku ---
+        self.pushButton_AutoSearch.setText(_translate("MainWindow", "Auto Search"))
+        # --- KONIEC MODYFIKACJI ---
+
         self.checkBox.setText(_translate("MainWindow", "with layout"))
 
 
@@ -144,12 +170,16 @@ class FilesJoiner(Ui_MainWindow):
 
     content of the next file
     """
+
     def __init__(self):
         super().__init__()
         self.status_item = {}
         self.all_files_content = {}
-        self.file_types = ['py', 'txt', 'json', 'html', 'css']
+        # --- POCZĄTEK MODYFIKACJI: Aktualizacja typów plików i dodanie ścieżki do katalogu ---
+        self.file_types = ['py', 'html', 'js', 'css', 'txt', 'layout']
         self.main_directory = ''
+        self.main_directory_path = ''  # Przechowuje pełną ścieżkę do głównego folderu
+        # --- KONIEC MODYFIKACJI ---
 
     def open_file_dialog(self):
         self.textEdit.clear()
@@ -177,12 +207,53 @@ class FilesJoiner(Ui_MainWindow):
             self.status_item[file_name] = False
             self.listWidget.addItem(item)
 
+    # --- POCZĄTEK MODYFIKACJI: Zmieniona metoda open_directory_dialog ---
     def open_directory_dialog(self):
         dlg = OpenDirectoryDialog()
-        self.main_directory = dlg.get_directory_path()
-        self.label_main_directory.setVisible(True)
-        self.label_main_directory.setText(self.main_directory)
-        return self.main_directory
+        directory_path = dlg.get_directory_path()  # Otrzymuje pełną ścieżkę
+        if directory_path:
+            self.main_directory_path = directory_path
+            self.main_directory = Path(directory_path).name
+            self.label_main_directory.setVisible(True)
+            self.label_main_directory.setText(self.main_directory)
+
+    # --- KONIEC MODYFIKACJI ---
+
+    # --- POCZĄTEK MODYFIKACJI: Dodana nowa metoda auto_search_files ---
+    def auto_search_files(self):
+        """
+        Przeszukuje wybrany katalog główny w poszukiwaniu plików o określonych rozszerzeniach
+        i dodaje je do listy.
+        """
+        if not self.main_directory_path:
+            self.show_message("Najpierw wybierz katalog główny za pomocą przycisku 'Main Folder'.")
+            return
+
+        self.clear_list_of_files()
+
+        search_extensions = ['.py', '.html', '.js', '.css', '.txt']
+        excluded_dirs = {'.git', '__pycache__', 'venv', 'node_modules', '.idea', '.vscode'}
+
+        for root, dirs, files in os.walk(self.main_directory_path, topdown=True):
+            # Wykluczanie niechcianych katalogów z dalszego przeszukiwania
+            dirs[:] = [d for d in dirs if d not in excluded_dirs]
+
+            for file in files:
+                file_path = Path(root) / file
+                if file_path.suffix.lower() in search_extensions:
+                    # Użyj ścieżki względnej jako unikalnego identyfikatora i etykiety
+                    relative_path = file_path.relative_to(self.main_directory_path).as_posix()
+
+                    if relative_path in self.all_files_content:
+                        continue  # Pomiń jeśli już istnieje
+
+                    self.all_files_content[relative_path] = {'path': str(file_path), 'content': []}
+                    item = QtWidgets.QListWidgetItem(relative_path)
+                    item.setIcon(QIcon("red_checkmark.png"))
+                    self.status_item[relative_path] = False
+                    self.listWidget.addItem(item)
+
+    # --- KONIEC MODYFIKACJI ---
 
     def on_item_clicked(self, item):
         icon_paths = ("green_checkmark.png", "red_checkmark.png")
@@ -216,6 +287,7 @@ class FilesJoiner(Ui_MainWindow):
         for fn, fc in self.all_files_content.items():
             if fc['content']:
                 full_path = fc['path']
+                # Używamy teraz ścieżki względnej jako 'fn'
                 shorten_path = self.shorten_path(full_path, self.main_directory)
                 self.textEdit.insertPlainText("==================== \n")
                 self.textEdit.insertPlainText(f"FILE: {shorten_path} \n\n")
@@ -311,11 +383,19 @@ class FilesJoiner(Ui_MainWindow):
         msgbox.exec_()
 
     def shorten_path(self, full_path, directory_name):
-        path_parts = Path(full_path).parts
-        for i, part in enumerate(path_parts):
-            if part == directory_name:
-                return Path(*path_parts[i:]).as_posix()
-        return full_path
+        path_obj = Path(full_path)
+        # Jeśli kluczem jest już ścieżka względna, po prostu ją zwróć
+        if not path_obj.is_absolute():
+            return path_obj.as_posix()
+
+        path_parts = path_obj.parts
+        try:
+            # Znajdź indeks, gdzie zaczyna się ścieżka względna od katalogu głównego
+            index = path_parts.index(directory_name)
+            return Path(*path_parts[index:]).as_posix()
+        except ValueError:
+            # Jeśli nazwa katalogu nie zostanie znaleziona, zwróć ostatnią część ścieżki (nazwę pliku)
+            return path_obj.name
 
     def get_absolute_path(self, relative_path):
         base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))

@@ -1,9 +1,11 @@
+# FILE: E:/Programowanie/Project/JoinAllFiles/OpenDirectoryDialog.py
+
 import sys
 from pathlib import Path
 from PyQt5.QtWidgets import (QMainWindow, QFileDialog, QApplication, QMessageBox)
 
 
-class OpenDirectoryDialog (QMainWindow):
+class OpenDirectoryDialog(QMainWindow):
 
     def __init__(self):
         super().__init__()
@@ -12,9 +14,14 @@ class OpenDirectoryDialog (QMainWindow):
         try:
             home_dir = str(Path.home())
             directory = QFileDialog.getExistingDirectory(self, 'Select Directory', home_dir)
+
+            # --- POCZĄTEK MODYFIKACJI ---
+            # Zmieniono, aby zwracać pełną ścieżkę, a nie tylko nazwę.
             if directory:
-                return Path(directory).name
+                return directory  # ZWRACA PEŁNĄ ŚCIEŻKĘ
             return ""
+            # --- KONIEC MODYFIKACJI ---
+
         except Exception as e:
             print(f"Error reading directory: {str(e)}")
             message = f"Error reading directory: {str(e)}"
