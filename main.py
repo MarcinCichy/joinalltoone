@@ -232,7 +232,7 @@ class FilesJoiner(Ui_MainWindow):
         self.clear_list_of_files()
 
         search_extensions = ['.py', '.html', '.js', '.css', '.txt']
-        excluded_dirs = {'.git', '__pycache__', 'venv', 'node_modules', '.idea', '.vscode'}
+        excluded_dirs = {'.git', '__pycache__', 'venv', 'node_modules', '.idea', '.vscode', '.idea', '.venv'}
 
         for root, dirs, files in os.walk(self.main_directory_path, topdown=True):
             # Wykluczanie niechcianych katalogów z dalszego przeszukiwania
