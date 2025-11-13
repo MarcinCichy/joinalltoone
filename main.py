@@ -13,7 +13,7 @@ import os
 import sys
 import json
 from pathlib import Path
-import fnmatch
+import fnmatch  # może być nieużywane, ale zostawiam jak było
 # import magic
 
 from PyQt5 import QtCore, QtWidgets
@@ -219,11 +219,11 @@ class FilesJoiner(Ui_MainWindow):
 
     # --- KONIEC MODYFIKACJI ---
 
-    # --- POCZĄTEK MODYFIKACJI: Dodana nowa metoda auto_search_files ---
+    # --- POCZĄTEK MODYFIKACJI: NOWA WERSJA auto_search_files ---
     def auto_search_files(self):
         """
         Przeszukuje wybrany katalog główny w poszukiwaniu plików o określonych rozszerzeniach
-        i dodaje je do listy.
+        i dodaje je do listy, z pominięciem katalogów wirtualnych środowisk, node_modules itd.
         """
         if not self.main_directory_path:
             self.show_message("Najpierw wybierz katalog główny za pomocą przycisku 'Main Folder'.")
@@ -231,13 +231,44 @@ class FilesJoiner(Ui_MainWindow):
 
         self.clear_list_of_files()
 
-        search_extensions = ['.py', '.html', '.js', '.css', '.txt']
-        excluded_dirs = {'.git', '__pycache__', 'venv', 'node_modules', '.idea', '.vscode', '.idea', '.venv'}
+        search_extensions = ['.py', '.html', '.js', '.css', '.txt', '.sql', '.iss']
+
+        # nazwy katalogów, które wycinamy „po nazwie”
+        excluded_dirs_exact = {
+            '.git',
+            '__pycache__',
+            'node_modules',
+            '.idea',
+            '.vscode',
+            'build',
+            'dist',
+            'builder',
+        }
+
+        # katalogi, które mają być wycinane po prefiksie
+        # (czyli: .venv, .venv1, .venv_coś, venv, venv1, venv_coś)
+        excluded_dirs_prefixes = ('.venv', 'venv')
 
         for root, dirs, files in os.walk(self.main_directory_path, topdown=True):
-            # Wykluczanie niechcianych katalogów z dalszego przeszukiwania
-            dirs[:] = [d for d in dirs if d not in excluded_dirs]
+            # zachowaj oryginalną listę katalogów, z której będziemy wybierać
+            original_dirs = list(dirs)
+            dirs[:] = []  # wyczyść listę, będziemy dodawać tylko te dozwolone
 
+            for d in original_dirs:
+                name = d.lower()
+
+                # 1) wytnij dokładnie znane katalogi
+                if name in excluded_dirs_exact:
+                    continue
+
+                # 2) wytnij wszystko, co zaczyna się od .venv lub venv
+                if any(name.startswith(prefix) for prefix in excluded_dirs_prefixes):
+                    continue
+
+                # jeżeli nie wycięliśmy – zostaje do przeszukiwania
+                dirs.append(d)
+
+            # teraz przetwarzamy pliki tylko w dozwolonych katalogach
             for file in files:
                 file_path = Path(root) / file
                 if file_path.suffix.lower() in search_extensions:
@@ -262,7 +293,7 @@ class FilesJoiner(Ui_MainWindow):
         self.change_icon(item, new_status, *icon_paths)
 
         if new_status:
-            self.load_file_content(item)
+            self.load_file_content(item)   # teraz nie będzie drugi raz czytać tego samego pliku
         else:
             self.all_files_content[item.text()]['content'] = []
         self.show_file_content()
@@ -274,24 +305,37 @@ class FilesJoiner(Ui_MainWindow):
             print(f"Error  loading icons: {str(e)}")
             self.show_message(str(e))
 
-    def load_file_content(self, item):
+    def load_file_content(self, item, force=False):
         try:
-            with open(self.all_files_content[item.text()]['path'], 'r', encoding='utf-8') as file:
-                self.all_files_content[item.text()]['content'] = file.readlines()
+            data = self.all_files_content[item.text()]
+
+            # jeśli już mamy zawartość i nie wymuszamy odświeżenia – nic nie rób
+            if data['content'] and not force:
+                return
+
+            with open(data['path'], 'r', encoding='utf-8') as file:
+                data['content'] = file.readlines()
         except Exception as e:
             print(f"Error reading file: {str(e)}")
             self.show_message(str(e))
 
     def show_file_content(self):
-        self.textEdit.clear()
+        # budujemy cały tekst w pamięci
+        parts = []
+
         for fn, fc in self.all_files_content.items():
             if fc['content']:
                 full_path = fc['path']
-                # Używamy teraz ścieżki względnej jako 'fn'
                 shorten_path = self.shorten_path(full_path, self.main_directory)
-                self.textEdit.insertPlainText("==================== \n")
-                self.textEdit.insertPlainText(f"FILE: {shorten_path} \n\n")
-                self.textEdit.insertPlainText(''.join(fc['content']) + '\n\n')
+                parts.append("==================== \n")
+                parts.append(f"FILE: {shorten_path} \n\n")
+                parts.append(''.join(fc['content']))
+                parts.append('\n\n')
+
+        # i dopiero na końcu ustawiamy zawartość w QTextEdit
+        self.textEdit.setUpdatesEnabled(False)
+        self.textEdit.setPlainText(''.join(parts))
+        self.textEdit.setUpdatesEnabled(True)
 
     def join_files(self):
         joined_text = ''
@@ -314,21 +358,29 @@ class FilesJoiner(Ui_MainWindow):
         self.status_item = {}
 
     def check_all(self):
+        self.listWidget.setUpdatesEnabled(False)
+
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
             if not self.status_item.get(item.text(), False):
                 self.status_item[item.text()] = True
                 self.change_icon(item, True, "green_checkmark.png", "red_checkmark.png")
                 self.load_file_content(item)
+
+        self.listWidget.setUpdatesEnabled(True)
         self.show_file_content()
 
     def uncheck_all(self):
+        self.listWidget.setUpdatesEnabled(False)
+
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
             if self.status_item.get(item.text(), False):
                 self.status_item[item.text()] = False
                 self.change_icon(item, False, "green_checkmark.png", "red_checkmark.png")
                 self.all_files_content[item.text()]['content'] = []
+
+        self.listWidget.setUpdatesEnabled(True)
         self.show_file_content()
 
     def update_files(self):
