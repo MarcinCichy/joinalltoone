@@ -231,7 +231,7 @@ class FilesJoiner(Ui_MainWindow):
 
         self.clear_list_of_files()
 
-        search_extensions = ['.py', '.html', '.js', '.css', '.txt', '.sql', '.iss']
+        search_extensions = ['.py', '.html', '.js', '.css', '.txt', '.sql', '.iss', '.md']
 
         # nazwy katalogów, które wycinamy „po nazwie”
         excluded_dirs_exact = {

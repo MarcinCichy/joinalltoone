@@ -13,7 +13,7 @@ class OpenFileDialog(QMainWindow):
         file_types:
           - None lub []     -> ['py'] (domyślnie pokazuje tylko .py)
           - str             -> traktuje jako pojedyncze rozszerzenie, np. 'py'
-          - lista strów     -> np. ['py','txt','json','html','css', 'layout']
+          - lista strów     -> np. ['py','txt','json','html','css', 'layout', 'js', 'sql', 'iss', 'md']
         Zwraca listę wybranych ścieżek.
         """
         try:
