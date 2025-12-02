@@ -1,4 +1,4 @@
-# FILE: E:/Programowanie/Project/JoinAllFiles/main.py
+# FILE: JoinAllToOne/main.py
 
 # -*- coding: utf-8 -*-
 
@@ -20,6 +20,7 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 
+# Upewnij się, że te pliki są w tym samym katalogu co main.py
 from OpenFileDialog import OpenFileDialog
 from OpenDirectoryDialog import OpenDirectoryDialog
 from SaveFileDialog import SaveFileDialog
@@ -293,7 +294,7 @@ class FilesJoiner(Ui_MainWindow):
         self.change_icon(item, new_status, *icon_paths)
 
         if new_status:
-            self.load_file_content(item)   # teraz nie będzie drugi raz czytać tego samego pliku
+            self.load_file_content(item)  # teraz nie będzie drugi raz czytać tego samego pliku
         else:
             self.all_files_content[item.text()]['content'] = []
         self.show_file_content()
@@ -313,8 +314,29 @@ class FilesJoiner(Ui_MainWindow):
             if data['content'] and not force:
                 return
 
-            with open(data['path'], 'r', encoding='utf-8') as file:
-                data['content'] = file.readlines()
+            # --- POPRAWKA: Próba odczytu z różnymi kodowaniami ---
+            # Dzięki temu unikamy błędu przy plikach UTF-16 lub Windows-1250
+            encodings_to_try = ['utf-8', 'utf-16', 'cp1250', 'latin-1']
+            success = False
+
+            for enc in encodings_to_try:
+                try:
+                    with open(data['path'], 'r', encoding=enc) as file:
+                        data['content'] = file.readlines()
+                    success = True
+                    break
+                except UnicodeDecodeError:
+                    continue
+                except Exception as e:
+                    # Inne błędy niż kodowanie nadal chcemy widzieć
+                    raise e
+
+            # Fallback - jeśli nic nie zadziałało, otwórz z błędami jako 'replace'
+            if not success:
+                with open(data['path'], 'r', encoding='utf-8', errors='replace') as file:
+                    data['content'] = file.readlines()
+            # --- KONIEC POPRAWKI ---
+
         except Exception as e:
             print(f"Error reading file: {str(e)}")
             self.show_message(str(e))
@@ -385,12 +407,27 @@ class FilesJoiner(Ui_MainWindow):
 
     def update_files(self):
         # ponowne wczytanie zawartości na dysku, zachowując status plików
+        # --- POPRAWKA: Również tutaj dodajemy bezpieczne wczytywanie ---
+        encodings_to_try = ['utf-8', 'utf-16', 'cp1250', 'latin-1']
+
         for fn, fc in self.all_files_content.items():
             path = fc['path']
             if self.status_item.get(fn, False):
+                success = False
                 try:
-                    with open(path, 'r', encoding='utf-8') as f:
-                        self.all_files_content[fn]['content'] = f.readlines()
+                    for enc in encodings_to_try:
+                        try:
+                            with open(path, 'r', encoding=enc) as f:
+                                self.all_files_content[fn]['content'] = f.readlines()
+                            success = True
+                            break
+                        except UnicodeDecodeError:
+                            continue
+
+                    if not success:
+                        with open(path, 'r', encoding='utf-8', errors='replace') as f:
+                            self.all_files_content[fn]['content'] = f.readlines()
+
                 except Exception as e:
                     print(f"Error updating file: {e}")
                     self.show_message(str(e))
